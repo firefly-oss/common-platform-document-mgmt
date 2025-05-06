@@ -93,15 +93,6 @@ public interface SignatureRequestService {
     Mono<SignatureRequestDTO> sendReminder(Long id);
 
     /**
-     * Process a callback from a signature provider.
-     *
-     * @param requestReference The request reference
-     * @param callbackData The callback data
-     * @return A Mono emitting the updated signature request
-     */
-    Mono<SignatureRequestDTO> processCallback(String requestReference, String callbackData);
-
-    /**
      * Check for and process expired signature requests.
      *
      * @return A Flux emitting the processed signature requests

@@ -2,7 +2,7 @@ package com.catalis.commons.ecm.core.services;
 
 import com.catalis.common.core.filters.FilterRequest;
 import com.catalis.common.core.queries.PaginationResponse;
-import com.catalis.commons.ecm.models.entities.Tag;
+import com.catalis.commons.ecm.interfaces.dtos.TagDTO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -16,7 +16,7 @@ public interface TagService {
      * @param id The tag ID
      * @return A Mono emitting the tag if found, or empty if not found
      */
-    Mono<Tag> getById(Long id);
+    Mono<TagDTO> getById(Long id);
 
     /**
      * Filter tags based on the provided filter request.
@@ -24,7 +24,7 @@ public interface TagService {
      * @param filterRequest The filter request containing filtering and pagination parameters
      * @return A Mono emitting a pagination response with the filtered tags
      */
-    Mono<PaginationResponse<Tag>> filter(FilterRequest<Tag> filterRequest);
+    Mono<PaginationResponse<TagDTO>> filter(FilterRequest<TagDTO> filterRequest);
 
     /**
      * Update an existing tag.
@@ -32,7 +32,7 @@ public interface TagService {
      * @param tag The tag to update
      * @return A Mono emitting the updated tag
      */
-    Mono<Tag> update(Tag tag);
+    Mono<TagDTO> update(TagDTO tag);
 
     /**
      * Create a new tag.
@@ -40,7 +40,7 @@ public interface TagService {
      * @param tag The tag to create
      * @return A Mono emitting the created tag
      */
-    Mono<Tag> create(Tag tag);
+    Mono<TagDTO> create(TagDTO tag);
 
     /**
      * Delete a tag by its ID.

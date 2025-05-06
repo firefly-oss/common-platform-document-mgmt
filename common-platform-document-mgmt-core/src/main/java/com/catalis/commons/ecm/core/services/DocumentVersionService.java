@@ -2,7 +2,7 @@ package com.catalis.commons.ecm.core.services;
 
 import com.catalis.common.core.filters.FilterRequest;
 import com.catalis.common.core.queries.PaginationResponse;
-import com.catalis.commons.ecm.models.entities.DocumentVersion;
+import com.catalis.commons.ecm.interfaces.dtos.DocumentVersionDTO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -16,7 +16,7 @@ public interface DocumentVersionService {
      * @param id The document version ID
      * @return A Mono emitting the document version if found, or empty if not found
      */
-    Mono<DocumentVersion> getById(Long id);
+    Mono<DocumentVersionDTO> getById(Long id);
 
     /**
      * Filter document versions based on the provided filter request.
@@ -24,7 +24,7 @@ public interface DocumentVersionService {
      * @param filterRequest The filter request containing filtering and pagination parameters
      * @return A Mono emitting a pagination response with the filtered document versions
      */
-    Mono<PaginationResponse<DocumentVersion>> filter(FilterRequest<DocumentVersion> filterRequest);
+    Mono<PaginationResponse<DocumentVersionDTO>> filter(FilterRequest<DocumentVersionDTO> filterRequest);
 
     /**
      * Update an existing document version.
@@ -32,7 +32,7 @@ public interface DocumentVersionService {
      * @param documentVersion The document version to update
      * @return A Mono emitting the updated document version
      */
-    Mono<DocumentVersion> update(DocumentVersion documentVersion);
+    Mono<DocumentVersionDTO> update(DocumentVersionDTO documentVersion);
 
     /**
      * Create a new document version.
@@ -40,7 +40,7 @@ public interface DocumentVersionService {
      * @param documentVersion The document version to create
      * @return A Mono emitting the created document version
      */
-    Mono<DocumentVersion> create(DocumentVersion documentVersion);
+    Mono<DocumentVersionDTO> create(DocumentVersionDTO documentVersion);
 
     /**
      * Delete a document version by its ID.

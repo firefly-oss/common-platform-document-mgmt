@@ -2,7 +2,7 @@ package com.catalis.commons.ecm.core.services;
 
 import com.catalis.common.core.filters.FilterRequest;
 import com.catalis.common.core.queries.PaginationResponse;
-import com.catalis.commons.ecm.models.entities.Folder;
+import com.catalis.commons.ecm.interfaces.dtos.FolderDTO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -16,7 +16,7 @@ public interface FolderService {
      * @param id The folder ID
      * @return A Mono emitting the folder if found, or empty if not found
      */
-    Mono<Folder> getById(Long id);
+    Mono<FolderDTO> getById(Long id);
 
     /**
      * Filter folders based on the provided filter request.
@@ -24,7 +24,7 @@ public interface FolderService {
      * @param filterRequest The filter request containing filtering and pagination parameters
      * @return A Mono emitting a pagination response with the filtered folders
      */
-    Mono<PaginationResponse<Folder>> filter(FilterRequest<Folder> filterRequest);
+    Mono<PaginationResponse<FolderDTO>> filter(FilterRequest<FolderDTO> filterRequest);
 
     /**
      * Update an existing folder.
@@ -32,7 +32,7 @@ public interface FolderService {
      * @param folder The folder to update
      * @return A Mono emitting the updated folder
      */
-    Mono<Folder> update(Folder folder);
+    Mono<FolderDTO> update(FolderDTO folder);
 
     /**
      * Create a new folder.
@@ -40,7 +40,7 @@ public interface FolderService {
      * @param folder The folder to create
      * @return A Mono emitting the created folder
      */
-    Mono<Folder> create(Folder folder);
+    Mono<FolderDTO> create(FolderDTO folder);
 
     /**
      * Delete a folder by its ID.

@@ -2,7 +2,7 @@ package com.catalis.commons.ecm.core.services;
 
 import com.catalis.common.core.filters.FilterRequest;
 import com.catalis.common.core.queries.PaginationResponse;
-import com.catalis.commons.ecm.models.entities.Document;
+import com.catalis.commons.ecm.interfaces.dtos.DocumentDTO;
 import reactor.core.publisher.Mono;
 
 /**
@@ -16,7 +16,7 @@ public interface DocumentService {
      * @param id The document ID
      * @return A Mono emitting the document if found, or empty if not found
      */
-    Mono<Document> getById(Long id);
+    Mono<DocumentDTO> getById(Long id);
 
     /**
      * Filter documents based on the provided filter request.
@@ -24,7 +24,7 @@ public interface DocumentService {
      * @param filterRequest The filter request containing filtering and pagination parameters
      * @return A Mono emitting a pagination response with the filtered documents
      */
-    Mono<PaginationResponse<Document>> filter(FilterRequest<Document> filterRequest);
+    Mono<PaginationResponse<DocumentDTO>> filter(FilterRequest<DocumentDTO> filterRequest);
 
     /**
      * Update an existing document.
@@ -32,7 +32,7 @@ public interface DocumentService {
      * @param document The document to update
      * @return A Mono emitting the updated document
      */
-    Mono<Document> update(Document document);
+    Mono<DocumentDTO> update(DocumentDTO document);
 
     /**
      * Create a new document.
@@ -40,7 +40,7 @@ public interface DocumentService {
      * @param document The document to create
      * @return A Mono emitting the created document
      */
-    Mono<Document> create(Document document);
+    Mono<DocumentDTO> create(DocumentDTO document);
 
     /**
      * Delete a document by its ID.
