@@ -1,4 +1,4 @@
-package com.catalis.commons.ecm.models;
+package com.catalis.commons.ecm.models.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Entity representing the many-to-many relationship between documents and tags in the Enterprise Content Management system.
@@ -24,13 +23,13 @@ import java.util.UUID;
 public class DocumentTag {
 
     @Id
-    private UUID id;
+    private Long id;
 
     @Column("document_id")
-    private UUID documentId;
+    private Long documentId;
 
     @Column("tag_id")
-    private UUID tagId;
+    private Long tagId;
 
     @Column("tenant_id")
     private String tenantId;

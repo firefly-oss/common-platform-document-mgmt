@@ -29,14 +29,8 @@ public class SignatureProvider {
     @Column("description")
     private String description;
 
-    @Column("api_url")
-    private String apiUrl;
-
-    @Column("api_key")
-    private String apiKey;
-
-    @Column("api_secret")
-    private String apiSecret;
+    @Column("provider_code")
+    private String providerCode;
 
     @Column("is_active")
     private Boolean isActive;

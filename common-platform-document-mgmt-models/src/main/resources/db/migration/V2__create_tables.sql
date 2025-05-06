@@ -46,6 +46,7 @@ CREATE TABLE documents (
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
     version BIGINT DEFAULT 0,
+    checksum VARCHAR(255),
     CONSTRAINT fk_document_folder FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE SET NULL
 );
 
@@ -245,6 +246,7 @@ CREATE INDEX idx_documents_document_type ON documents(document_type);
 CREATE INDEX idx_documents_document_status ON documents(document_status);
 CREATE INDEX idx_documents_security_level ON documents(security_level);
 CREATE INDEX idx_documents_tenant_id ON documents(tenant_id);
+CREATE INDEX idx_documents_checksum ON documents(checksum);
 
 CREATE INDEX idx_document_versions_document_id ON document_versions(document_id);
 CREATE INDEX idx_document_versions_tenant_id ON document_versions(tenant_id);

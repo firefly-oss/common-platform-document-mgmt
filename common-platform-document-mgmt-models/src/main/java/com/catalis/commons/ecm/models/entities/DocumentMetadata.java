@@ -1,20 +1,14 @@
-package com.catalis.commons.ecm.models;
+package com.catalis.commons.ecm.models.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedBy;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedBy;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.annotation.Version;
+import org.springframework.data.annotation.*;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Entity representing metadata associated with a document in the Enterprise Content Management system.
@@ -27,10 +21,10 @@ import java.util.UUID;
 public class DocumentMetadata {
 
     @Id
-    private UUID id;
+    private Long id;
 
     @Column("document_id")
-    private UUID documentId;
+    private Long documentId;
 
     @Column("metadata_key")
     private String key;

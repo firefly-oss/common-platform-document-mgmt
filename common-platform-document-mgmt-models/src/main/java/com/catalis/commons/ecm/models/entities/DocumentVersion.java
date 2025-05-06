@@ -1,4 +1,4 @@
-package com.catalis.commons.ecm.models;
+package com.catalis.commons.ecm.models.entities;
 
 import com.catalis.commons.ecm.interfaces.enums.StorageType;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Entity representing a version of a document in the Enterprise Content Management system.
@@ -25,10 +24,10 @@ import java.util.UUID;
 public class DocumentVersion {
 
     @Id
-    private UUID id;
+    private Long id;
 
     @Column("document_id")
-    private UUID documentId;
+    private Long documentId;
 
     @Column("version_number")
     private Integer versionNumber;

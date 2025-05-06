@@ -30,12 +30,6 @@ public class SignatureRequest {
     @Column("request_reference")
     private String requestReference;
 
-    @Column("request_url")
-    private String requestUrl;
-
-    @Column("callback_url")
-    private String callbackUrl;
-
     @Column("request_status")
     private SignatureStatus requestStatus;
 
@@ -59,9 +53,6 @@ public class SignatureRequest {
 
     @Column("completed_at")
     private LocalDateTime completedAt;
-
-    @Column("provider_response")
-    private String providerResponse;
 
     @Column("tenant_id")
     private String tenantId;
