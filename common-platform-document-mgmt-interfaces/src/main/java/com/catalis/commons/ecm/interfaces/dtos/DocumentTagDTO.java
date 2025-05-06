@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Data Transfer Object for DocumentTag entity.
@@ -23,13 +22,13 @@ import java.util.UUID;
 public class DocumentTagDTO {
 
     @Schema(description = "Unique identifier of the document-tag relationship")
-    private UUID id;
+    private Long id;
 
     @Schema(description = "ID of the document")
-    private UUID documentId;
+    private Long documentId;
 
     @Schema(description = "ID of the tag")
-    private UUID tagId;
+    private Long tagId;
 
     @Schema(description = "Tenant ID for multi-tenancy support")
     private String tenantId;

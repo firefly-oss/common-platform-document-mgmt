@@ -3,6 +3,7 @@ package com.catalis.commons.ecm.interfaces.dtos;
 import com.catalis.commons.ecm.interfaces.enums.StorageType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +11,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Data Transfer Object for DocumentVersion entity.
@@ -24,10 +24,11 @@ import java.util.UUID;
 public class DocumentVersionDTO {
 
     @Schema(description = "Unique identifier of the document version")
-    private UUID id;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long id;
 
     @Schema(description = "ID of the document this version belongs to")
-    private UUID documentId;
+    private Long documentId;
 
     @Schema(description = "Version number")
     private Integer versionNumber;

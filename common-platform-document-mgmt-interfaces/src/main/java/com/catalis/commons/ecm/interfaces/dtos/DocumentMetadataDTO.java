@@ -2,6 +2,7 @@ package com.catalis.commons.ecm.interfaces.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Data Transfer Object for DocumentMetadata entity.
@@ -23,10 +23,11 @@ import java.util.UUID;
 public class DocumentMetadataDTO {
 
     @Schema(description = "Unique identifier of the metadata")
-    private UUID id;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long id;
 
     @Schema(description = "ID of the document this metadata belongs to")
-    private UUID documentId;
+    private Long documentId;
 
     @Schema(description = "Metadata key")
     private String key;

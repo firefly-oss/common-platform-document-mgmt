@@ -32,16 +32,8 @@ public class SignatureProviderDTO {
     @Schema(description = "Description of the signature provider")
     private String description;
 
-    @Schema(description = "API URL of the signature provider")
-    private String apiUrl;
-
-    @Schema(description = "API key for the signature provider")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String apiKey;
-
-    @Schema(description = "API secret for the signature provider")
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String apiSecret;
+    @Schema(description = "Provider code for identifying the QTSP integration")
+    private String providerCode;
 
     @Schema(description = "Indicates if the signature provider is active")
     private Boolean isActive;

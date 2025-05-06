@@ -3,6 +3,7 @@ package com.catalis.commons.ecm.interfaces.dtos;
 import com.catalis.commons.ecm.interfaces.enums.SecurityLevel;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +11,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Data Transfer Object for Folder entity.
@@ -24,7 +24,8 @@ import java.util.UUID;
 public class FolderDTO {
 
     @Schema(description = "Unique identifier of the folder")
-    private UUID id;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Long id;
 
     @Schema(description = "Name of the folder")
     private String name;
@@ -33,7 +34,7 @@ public class FolderDTO {
     private String description;
 
     @Schema(description = "ID of the parent folder")
-    private UUID parentFolderId;
+    private Long parentFolderId;
 
     @Schema(description = "Path of the folder in the folder hierarchy")
     private String path;

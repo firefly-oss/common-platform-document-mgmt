@@ -10,7 +10,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Data Transfer Object for DocumentPermission entity.
@@ -24,16 +23,13 @@ import java.util.UUID;
 public class DocumentPermissionDTO {
 
     @Schema(description = "Unique identifier of the permission")
-    private UUID id;
+    private Long id;
 
     @Schema(description = "ID of the document this permission applies to")
-    private UUID documentId;
+    private Long documentId;
 
-    @Schema(description = "ID of the user this permission applies to")
-    private String userId;
-
-    @Schema(description = "ID of the group this permission applies to")
-    private String groupId;
+    @Schema(description = "ID of the party this permission applies to")
+    private Long partyId;
 
     @Schema(description = "Type of permission")
     private PermissionType permissionType;

@@ -9,7 +9,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * Data Transfer Object for Tag entity.
@@ -23,7 +22,7 @@ import java.util.UUID;
 public class TagDTO {
 
     @Schema(description = "Unique identifier of the tag")
-    private UUID id;
+    private Long id;
 
     @Schema(description = "Name of the tag")
     private String name;

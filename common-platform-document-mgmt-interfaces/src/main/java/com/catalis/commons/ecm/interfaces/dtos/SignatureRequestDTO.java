@@ -33,12 +33,6 @@ public class SignatureRequestDTO {
     @Schema(description = "Reference code for the signature request")
     private String requestReference;
 
-    @Schema(description = "URL where the signer can sign the document")
-    private String requestUrl;
-
-    @Schema(description = "URL where the signature provider will send callbacks")
-    private String callbackUrl;
-
     @Schema(description = "Status of the signature request")
     private SignatureStatus requestStatus;
 
@@ -66,9 +60,6 @@ public class SignatureRequestDTO {
     @Schema(description = "Date and time when the signature request was completed")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime completedAt;
-
-    @Schema(description = "Response from the signature provider")
-    private String providerResponse;
 
     @Schema(description = "Tenant ID for multi-tenancy support")
     private String tenantId;
