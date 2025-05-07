@@ -51,7 +51,7 @@ erDiagram
     DocumentSignature ||--o{ SignatureRequest : has
     DocumentSignature ||--o{ SignatureVerification : has
     DocumentSignature }o--|| SignatureProvider : uses
-    
+
     Folder {
         bigint id PK
         varchar name
@@ -67,7 +67,7 @@ erDiagram
         varchar updated_by
         bigint version
     }
-    
+
     Document {
         bigint id PK
         varchar name
@@ -97,7 +97,7 @@ erDiagram
         bigint version
         varchar checksum
     }
-    
+
     DocumentVersion {
         bigint id PK
         bigint document_id FK
@@ -115,7 +115,7 @@ erDiagram
         timestamp created_at
         varchar created_by
     }
-    
+
     DocumentMetadata {
         bigint id PK
         bigint document_id FK
@@ -131,7 +131,7 @@ erDiagram
         varchar updated_by
         bigint version
     }
-    
+
     DocumentPermission {
         bigint id PK
         bigint document_id FK
@@ -146,7 +146,7 @@ erDiagram
         varchar updated_by
         bigint version
     }
-    
+
     Tag {
         bigint id PK
         varchar name
@@ -160,7 +160,7 @@ erDiagram
         varchar updated_by
         bigint version
     }
-    
+
     DocumentTag {
         bigint id PK
         bigint document_id FK
@@ -169,7 +169,7 @@ erDiagram
         timestamp created_at
         varchar created_by
     }
-    
+
     SignatureProvider {
         bigint id PK
         varchar name
@@ -184,7 +184,7 @@ erDiagram
         varchar updated_by
         bigint version
     }
-    
+
     DocumentSignature {
         bigint id PK
         bigint document_id FK
@@ -215,7 +215,7 @@ erDiagram
         varchar updated_by
         bigint version
     }
-    
+
     SignatureRequest {
         bigint id PK
         bigint document_signature_id FK
@@ -235,7 +235,7 @@ erDiagram
         varchar updated_by
         bigint version
     }
-    
+
     SignatureVerification {
         bigint id PK
         bigint document_signature_id FK
@@ -470,6 +470,375 @@ The ECM Microservice exposes a RESTful API with the following endpoints:
 | PUT | `/api/v1/signature-verifications/{id}` | Update an existing signature verification |
 | POST | `/api/v1/signature-verifications/verify` | Verify a document signature |
 
+### CMIS Controller
+**Base Path**: `/api/v1/cmis`
+
+The CMIS Controller provides compatibility with the Content Management Interoperability Services (CMIS) standard, allowing integration with CMIS clients.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/cmis/repositories` | Get all available repositories |
+| GET | `/api/v1/cmis/repositories/{repositoryId}` | Get repository by ID |
+| GET | `/api/v1/cmis/repositories/{repositoryId}/rootFolder` | Get the root folder of a repository |
+| GET | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}` | Get an object by ID |
+| GET | `/api/v1/cmis/repositories/{repositoryId}/objects` | Get an object by path |
+| GET | `/api/v1/cmis/repositories/{repositoryId}/folders/{folderId}/children` | Get children of a folder |
+| POST | `/api/v1/cmis/repositories/{repositoryId}/folders/{folderId}/documents` | Create a document |
+| POST | `/api/v1/cmis/repositories/{repositoryId}/folders/{parentFolderId}/folders` | Create a folder |
+| PUT | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}` | Update object properties |
+| DELETE | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}` | Delete an object |
+| GET | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}/content` | Get content stream |
+| PUT | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}/content` | Set content stream |
+| GET | `/api/v1/cmis/repositories/{repositoryId}/query` | Query repository |
+| POST | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}/checkout` | Check out a document |
+| DELETE | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}/checkout` | Cancel check out |
+| POST | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}/checkin` | Check in a document |
+| GET | `/api/v1/cmis/repositories/{repositoryId}/objects/{objectId}/versions` | Get all versions of a document |
+
+#### Working with CMIS
+
+The CMIS API provides a standard way to interact with the ECM system. Here's how to perform common document management tasks using the CMIS API:
+
+##### Getting Started
+
+1. **Get available repositories**:
+   ```http
+   GET /api/v1/cmis/repositories
+   ```
+   Response:
+   ```json
+   [
+     {
+       "id": "ecm-repository",
+       "name": "ECM Repository",
+       "description": "Enterprise Content Management Repository",
+       "vendorName": "Firefly",
+       "productName": "Enterprise Content Management",
+       "productVersion": "1.0.0",
+       "rootFolderId": "1",
+       "cmisVersionSupported": "1.1",
+       "capabilities": {
+         "contentStreamUpdatability": true,
+         "changesCapability": true,
+         "renditionsCapability": false,
+         "getDescendantsSupported": true,
+         "getFolderTreeSupported": true,
+         "multifilingSupported": false,
+         "unfilingSupported": false,
+         "versionSpecificFilingSupported": false,
+         "pwcUpdatableSupported": true,
+         "pwcSearchableSupported": true,
+         "allVersionsSearchableSupported": true,
+         "querySupported": true,
+         "joinSupported": false,
+         "aclSupported": true
+       }
+     }
+   ]
+   ```
+
+2. **Get the root folder**:
+   ```http
+   GET /api/v1/cmis/repositories/ecm-repository/rootFolder
+   ```
+   Response:
+   ```json
+   {
+     "id": "1",
+     "name": "Root",
+     "baseTypeId": "cmis:folder",
+     "objectTypeId": "cmis:folder",
+     "creationDate": "2023-01-01T00:00:00",
+     "lastModificationDate": "2023-01-01T00:00:00",
+     "createdBy": "admin",
+     "lastModifiedBy": "admin",
+     "properties": {
+       "description": "Root folder"
+     }
+   }
+   ```
+
+##### Creating Documents
+
+To create a document in CMIS:
+
+1. **Create a document**:
+   ```http
+   POST /api/v1/cmis/repositories/ecm-repository/folders/1/documents
+   Content-Type: multipart/form-data
+
+   name=Invoice.pdf
+   contentType=application/pdf
+   content=@/path/to/invoice.pdf
+   properties[description]=Invoice for January 2023
+   ```
+   Response:
+   ```json
+   {
+     "id": "123",
+     "name": "Invoice.pdf",
+     "baseTypeId": "cmis:document",
+     "objectTypeId": "cmis:document",
+     "creationDate": "2023-01-15T10:30:00",
+     "lastModificationDate": "2023-01-15T10:30:00",
+     "createdBy": "user1",
+     "lastModifiedBy": "user1",
+     "parentId": "1",
+     "contentStreamFileName": "Invoice.pdf",
+     "contentStreamMimeType": "application/pdf",
+     "properties": {}
+   }
+   ```
+
+2. **Add content to an existing document**:
+   ```http
+   PUT /api/v1/cmis/repositories/ecm-repository/objects/123/content
+   Content-Type: multipart/form-data
+
+   contentType=application/pdf
+   overwrite=true
+   content=@/path/to/updated-invoice.pdf
+   ```
+   Response:
+   ```json
+   {
+     "id": "123",
+     "name": "Invoice.pdf",
+     "baseTypeId": "cmis:document",
+     "objectTypeId": "cmis:document",
+     "creationDate": "2023-01-15T10:30:00",
+     "lastModificationDate": "2023-01-15T11:45:00",
+     "createdBy": "user1",
+     "lastModifiedBy": "user1",
+     "parentId": "1",
+     "contentStreamFileName": "Invoice.pdf",
+     "contentStreamMimeType": "application/pdf",
+     "properties": {}
+   }
+   ```
+
+##### Managing Document Properties
+
+1. **Update document properties**:
+   ```http
+   PUT /api/v1/cmis/repositories/ecm-repository/objects/123
+   Content-Type: application/json
+
+   {
+     "name": "January-Invoice.pdf",
+     "description": "Updated invoice for January 2023"
+   }
+   ```
+   Response:
+   ```json
+   {
+     "id": "123",
+     "name": "January-Invoice.pdf",
+     "baseTypeId": "cmis:document",
+     "objectTypeId": "cmis:document",
+     "creationDate": "2023-01-15T10:30:00",
+     "lastModificationDate": "2023-01-15T14:20:00",
+     "createdBy": "user1",
+     "lastModifiedBy": "user1",
+     "parentId": "1",
+     "contentStreamFileName": "January-Invoice.pdf",
+     "contentStreamMimeType": "application/pdf",
+     "properties": {
+       "description": "Updated invoice for January 2023"
+     }
+   }
+   ```
+
+##### Retrieving Documents and Content
+
+1. **Get document metadata**:
+   ```http
+   GET /api/v1/cmis/repositories/ecm-repository/objects/123
+   ```
+   Response:
+   ```json
+   {
+     "id": "123",
+     "name": "January-Invoice.pdf",
+     "baseTypeId": "cmis:document",
+     "objectTypeId": "cmis:document",
+     "creationDate": "2023-01-15T10:30:00",
+     "lastModificationDate": "2023-01-15T14:20:00",
+     "createdBy": "user1",
+     "lastModifiedBy": "user1",
+     "parentId": "1",
+     "contentStreamFileName": "January-Invoice.pdf",
+     "contentStreamMimeType": "application/pdf",
+     "properties": {
+       "description": "Updated invoice for January 2023"
+     }
+   }
+   ```
+
+2. **Download document content**:
+   ```http
+   GET /api/v1/cmis/repositories/ecm-repository/objects/123/content
+   ```
+   Response: Binary content of the document (application/pdf)
+
+##### Working with Document Versions
+
+1. **Check out a document for editing**:
+   ```http
+   POST /api/v1/cmis/repositories/ecm-repository/objects/123/checkout
+   ```
+   Response:
+   ```json
+   {
+     "id": "123-pwc",
+     "name": "January-Invoice.pdf",
+     "baseTypeId": "cmis:document",
+     "objectTypeId": "cmis:document",
+     "creationDate": "2023-01-15T10:30:00",
+     "lastModificationDate": "2023-01-15T16:05:00",
+     "createdBy": "user1",
+     "lastModifiedBy": "user1",
+     "parentId": "1",
+     "contentStreamFileName": "January-Invoice.pdf",
+     "contentStreamMimeType": "application/pdf",
+     "properties": {
+       "description": "Updated invoice for January 2023"
+     }
+   }
+   ```
+
+2. **Check in a document after editing**:
+   ```http
+   POST /api/v1/cmis/repositories/ecm-repository/objects/123-pwc/checkin
+   Content-Type: multipart/form-data
+
+   major=true
+   comment=Updated with final amounts
+   contentType=application/pdf
+   content=@/path/to/final-invoice.pdf
+   properties[description]=Final invoice for January 2023
+   ```
+   Response:
+   ```json
+   {
+     "id": "123",
+     "name": "January-Invoice.pdf",
+     "baseTypeId": "cmis:document",
+     "objectTypeId": "cmis:document",
+     "creationDate": "2023-01-15T10:30:00",
+     "lastModificationDate": "2023-01-15T16:30:00",
+     "createdBy": "user1",
+     "lastModifiedBy": "user1",
+     "parentId": "1",
+     "contentStreamFileName": "January-Invoice.pdf",
+     "contentStreamMimeType": "application/pdf",
+     "versionLabel": "2.0",
+     "isLatestVersion": true,
+     "isMajorVersion": true,
+     "properties": {
+       "description": "Final invoice for January 2023"
+     }
+   }
+   ```
+
+3. **Get all versions of a document**:
+   ```http
+   GET /api/v1/cmis/repositories/ecm-repository/objects/123/versions
+   ```
+   Response:
+   ```json
+   [
+     {
+       "id": "123-v1",
+       "name": "Invoice.pdf",
+       "baseTypeId": "cmis:document",
+       "objectTypeId": "cmis:document",
+       "creationDate": "2023-01-15T10:30:00",
+       "lastModificationDate": "2023-01-15T10:30:00",
+       "createdBy": "user1",
+       "lastModifiedBy": "user1",
+       "parentId": "1",
+       "contentStreamFileName": "Invoice.pdf",
+       "contentStreamMimeType": "application/pdf",
+       "versionLabel": "1.0",
+       "isLatestVersion": false,
+       "isMajorVersion": true,
+       "properties": {
+         "description": "Invoice for January 2023"
+       }
+     },
+     {
+       "id": "123",
+       "name": "January-Invoice.pdf",
+       "baseTypeId": "cmis:document",
+       "objectTypeId": "cmis:document",
+       "creationDate": "2023-01-15T10:30:00",
+       "lastModificationDate": "2023-01-15T16:30:00",
+       "createdBy": "user1",
+       "lastModifiedBy": "user1",
+       "parentId": "1",
+       "contentStreamFileName": "January-Invoice.pdf",
+       "contentStreamMimeType": "application/pdf",
+       "versionLabel": "2.0",
+       "isLatestVersion": true,
+       "isMajorVersion": true,
+       "properties": {
+         "description": "Final invoice for January 2023"
+       }
+     }
+   ]
+   ```
+
+##### Querying Documents
+
+1. **Query documents in the repository**:
+   ```http
+   GET /api/v1/cmis/repositories/ecm-repository/query?statement=SELECT * FROM cmis:document WHERE cmis:name LIKE '%Invoice%'&searchAllVersions=false
+   ```
+   Response:
+   ```json
+   [
+     {
+       "id": "123",
+       "name": "January-Invoice.pdf",
+       "baseTypeId": "cmis:document",
+       "objectTypeId": "cmis:document",
+       "creationDate": "2023-01-15T10:30:00",
+       "lastModificationDate": "2023-01-15T16:30:00",
+       "createdBy": "user1",
+       "lastModifiedBy": "user1",
+       "parentId": "1",
+       "contentStreamFileName": "January-Invoice.pdf",
+       "contentStreamMimeType": "application/pdf",
+       "versionLabel": "2.0",
+       "isLatestVersion": true,
+       "isMajorVersion": true,
+       "properties": {
+         "description": "Final invoice for January 2023"
+       }
+     },
+     {
+       "id": "456",
+       "name": "February-Invoice.pdf",
+       "baseTypeId": "cmis:document",
+       "objectTypeId": "cmis:document",
+       "creationDate": "2023-02-15T09:45:00",
+       "lastModificationDate": "2023-02-15T09:45:00",
+       "createdBy": "user1",
+       "lastModifiedBy": "user1",
+       "parentId": "1",
+       "contentStreamFileName": "February-Invoice.pdf",
+       "contentStreamMimeType": "application/pdf",
+       "versionLabel": "1.0",
+       "isLatestVersion": true,
+       "isMajorVersion": true,
+       "properties": {
+         "description": "Invoice for February 2023"
+       }
+     }
+   ]
+   ```
+
 ## Installation and Configuration
 
 ### Prerequisites
@@ -487,12 +856,12 @@ spring:
     name: common-platform-document-mgmt
     version: 1.0.0
     description: Enterprise Content Management Core Application
-    
+
   r2dbc:
     url: r2dbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslMode=${DB_SSL_MODE}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    
+
   flyway:
     enabled: true
     baseline-on-migrate: true
