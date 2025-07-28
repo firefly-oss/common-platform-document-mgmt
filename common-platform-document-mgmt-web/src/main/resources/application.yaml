@@ -88,6 +88,32 @@ firefly:
       require-signature: false
       enforce-resource-limits: false
 
+# CMIS Configuration
+cmis:
+  repository:
+    id: ecm-repository
+    name: ECM Repository
+    description: Enterprise Content Management Repository
+    vendor-name: Firefly
+    product-name: Enterprise Content Management
+    product-version: 1.0.0
+    cmis-version: 1.1
+  capabilities:
+    content-stream-updatability: true
+    changes-capability: true
+    renditions-capability: false
+    get-descendants-supported: true
+    get-folder-tree-supported: true
+    multifiling-supported: false
+    unfiling-supported: false
+    version-specific-filing-supported: false
+    pwc-updatable-supported: true
+    pwc-searchable-supported: true
+    all-versions-searchable-supported: true
+    query-supported: true
+    join-supported: false
+    acl-supported: true
+
 ---
 spring:
   config:

@@ -7,5 +7,5 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring")
 public interface DocumentPermissionMapper {
     DocumentPermissionDTO toDTO (DocumentPermission entity);
-    DocumentPermission toEntity (DocumentPermission dto);
+    DocumentPermission toEntity (DocumentPermissionDTO dto);
 }

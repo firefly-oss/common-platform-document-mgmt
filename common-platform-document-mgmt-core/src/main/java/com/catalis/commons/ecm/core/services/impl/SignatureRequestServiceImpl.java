@@ -1,14 +1,21 @@
 package com.catalis.commons.ecm.core.services.impl;
 
 import com.catalis.common.core.filters.FilterRequest;
+import com.catalis.common.core.filters.FilterUtils;
 import com.catalis.common.core.queries.PaginationResponse;
+import com.catalis.commons.ecm.core.mappers.SignatureRequestMapper;
 import com.catalis.commons.ecm.core.services.SignatureRequestService;
 import com.catalis.commons.ecm.interfaces.dtos.SignatureRequestDTO;
 import com.catalis.commons.ecm.interfaces.enums.SignatureStatus;
+import com.catalis.commons.ecm.models.entities.SignatureRequest;
+import com.catalis.commons.ecm.models.repositories.SignatureRequestRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
 
 /**
  * Implementation of the SignatureRequestService interface.
@@ -17,58 +24,129 @@ import reactor.core.publisher.Mono;
 @Transactional
 public class SignatureRequestServiceImpl implements SignatureRequestService {
 
+    @Autowired
+    private SignatureRequestRepository repository;
+
+    @Autowired
+    private SignatureRequestMapper mapper;
+
     @Override
     public Mono<SignatureRequestDTO> getById(Long id) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        return repository.findById(id)
+                .map(mapper::toDTO);
     }
 
     @Override
     public Mono<PaginationResponse<SignatureRequestDTO>> filter(FilterRequest<SignatureRequestDTO> filterRequest) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        return FilterUtils.createFilter(
+                SignatureRequest.class,
+                mapper::toDTO
+        ).filter(filterRequest);
     }
 
     @Override
     public Mono<SignatureRequestDTO> update(SignatureRequestDTO signatureRequest) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        if (signatureRequest.getId() == null) {
+            return Mono.error(new IllegalArgumentException("ID cannot be null for update operation"));
+        }
+
+        return repository.findById(signatureRequest.getId())
+                .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + signatureRequest.getId())))
+                .flatMap(existingEntity -> {
+                    SignatureRequest entityToUpdate = mapper.toEntity(signatureRequest);
+                    // Preserve created info
+                    entityToUpdate.setCreatedAt(existingEntity.getCreatedAt());
+                    entityToUpdate.setCreatedBy(existingEntity.getCreatedBy());
+                    return repository.save(entityToUpdate);
+                })
+                .map(mapper::toDTO);
     }
 
     @Override
     public Mono<SignatureRequestDTO> create(SignatureRequestDTO signatureRequest) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        // Ensure ID is null for create operation
+        signatureRequest.setId(null);
+
+        // Set default values if not provided
+        if (signatureRequest.getRequestStatus() == null) {
+            signatureRequest.setRequestStatus(SignatureStatus.PENDING);
+        }
+        if (signatureRequest.getNotificationSent() == null) {
+            signatureRequest.setNotificationSent(false);
+        }
+        if (signatureRequest.getReminderSent() == null) {
+            signatureRequest.setReminderSent(false);
+        }
+
+        SignatureRequest entity = mapper.toEntity(signatureRequest);
+        return repository.save(entity)
+                .map(mapper::toDTO);
     }
 
     @Override
     public Mono<Void> delete(Long id) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
+                .flatMap(entity -> repository.delete(entity));
     }
 
     @Override
     public Flux<SignatureRequestDTO> getByDocumentSignatureId(Long documentSignatureId) {
-        return Flux.error(new UnsupportedOperationException("Not implemented yet"));
+        return repository.findByDocumentSignatureId(documentSignatureId)
+                .map(mapper::toDTO);
     }
 
     @Override
     public Mono<SignatureRequestDTO> getByRequestReference(String requestReference) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        return repository.findByRequestReference(requestReference)
+                .map(mapper::toDTO);
     }
 
     @Override
     public Flux<SignatureRequestDTO> getByRequestStatus(SignatureStatus requestStatus) {
-        return Flux.error(new UnsupportedOperationException("Not implemented yet"));
+        return repository.findByRequestStatus(requestStatus)
+                .map(mapper::toDTO);
     }
 
     @Override
     public Mono<SignatureRequestDTO> sendNotification(Long id) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
+                .flatMap(entity -> {
+                    // In a real implementation, this would send an actual notification
+                    // For now, we'll just update the entity
+                    entity.setNotificationSent(true);
+                    entity.setNotificationSentAt(LocalDateTime.now());
+                    return repository.save(entity);
+                })
+                .map(mapper::toDTO);
     }
 
     @Override
     public Mono<SignatureRequestDTO> sendReminder(Long id) {
-        return Mono.error(new UnsupportedOperationException("Not implemented yet"));
+        return repository.findById(id)
+                .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
+                .flatMap(entity -> {
+                    // In a real implementation, this would send an actual reminder
+                    // For now, we'll just update the entity
+                    entity.setReminderSent(true);
+                    entity.setReminderSentAt(LocalDateTime.now());
+                    return repository.save(entity);
+                })
+                .map(mapper::toDTO);
     }
 
     @Override
     public Flux<SignatureRequestDTO> processExpiredRequests() {
-        return Flux.error(new UnsupportedOperationException("Not implemented yet"));
+        LocalDateTime now = LocalDateTime.now();
+
+        // Find all pending requests that have expired
+        return repository.findByExpirationDateBeforeAndRequestStatus(now, SignatureStatus.PENDING)
+                .flatMap(entity -> {
+                    // Mark the request as expired
+                    entity.setRequestStatus(SignatureStatus.EXPIRED);
+                    return repository.save(entity);
+                })
+                .map(mapper::toDTO);
     }
 }
