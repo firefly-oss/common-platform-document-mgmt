@@ -19,12 +19,19 @@
         <module>common-platform-document-mgmt-models</module>
         <module>common-platform-document-mgmt-web</module>
         <module>common-platform-document-mgmt-sdk</module>
+        <module>common-platform-document-mgmt-storage-s3</module>
+        <module>common-platform-document-mgmt-esignature-logalty</module>
+        <module>common-platform-document-mgmt-storage-grpc</module>
     </modules>
 
     <properties>
         <common-platform-document-mgmt.version>
             1.0.0-SNAPSHOT
         </common-platform-document-mgmt.version>
+        <grpc.version>1.59.0</grpc.version>
+        <protobuf.version>3.24.0</protobuf.version>
+        <grpc-spring-boot-starter.version>3.1.0.RELEASE</grpc-spring-boot-starter.version>
+        <protoc.version>3.24.0</protoc.version>
     </properties>
 
     <dependencyManagement>
@@ -54,6 +61,52 @@
                 <groupId>com.catalis</groupId>
                 <artifactId>common-platform-document-mgmt-sdk</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.catalis</groupId>
+                <artifactId>common-platform-document-mgmt-storage-s3</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.catalis</groupId>
+                <artifactId>common-platform-document-mgmt-esignature-logalty</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.catalis</groupId>
+                <artifactId>common-platform-document-mgmt-storage-grpc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- gRPC Dependencies -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-netty-shaded</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-protobuf</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-stub</artifactId>
+                <version>${grpc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.devh</groupId>
+                <artifactId>grpc-server-spring-boot-starter</artifactId>
+                <version>${grpc-spring-boot-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.devh</groupId>
+                <artifactId>grpc-client-spring-boot-starter</artifactId>
+                <version>${grpc-spring-boot-starter.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

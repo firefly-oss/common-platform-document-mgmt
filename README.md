@@ -34,15 +34,143 @@ Key features include:
 
 ## Architecture
 
-The application is built using a modular architecture with the following components:
+The application is built using a hexagonal architecture (also known as ports and adapters) with the following components:
 
-- **common-platform-document-mgmt-core**: Core business logic and services
-- **common-platform-document-mgmt-interfaces**: Interfaces and DTOs
+- **common-platform-document-mgmt-core**: Core business logic, services, and provider interfaces (ports)
+- **common-platform-document-mgmt-interfaces**: Interfaces and DTOs for external communication
 - **common-platform-document-mgmt-models**: Entity models and repositories
 - **common-platform-document-mgmt-sdk**: SDK components and API specifications
 - **common-platform-document-mgmt-web**: Web controllers and application configuration
+- **common-platform-document-mgmt-storage-s3**: Amazon S3 implementation of the storage provider interface
+- **common-platform-document-mgmt-storage-grpc**: gRPC service implementation for storage operations
+- **common-platform-document-mgmt-esignature-logalty**: Logalty implementation of the e-signature provider interface
 
 The application is built with Spring Boot and uses reactive programming with Project Reactor for asynchronous, non-blocking operations.
+
+### Hexagonal Architecture
+
+The application follows the hexagonal architecture pattern, which separates the core business logic from external dependencies:
+
+- **Core Domain**: Contains the business logic and defines interfaces (ports) for interacting with external systems
+- **Ports**: Interfaces that define how the core domain interacts with the outside world
+- **Adapters**: Implementations of the ports that connect the core domain to specific technologies or external systems
+
+This architecture provides several benefits:
+- **Modularity**: Each component has a clear responsibility and can be developed and tested independently
+- **Flexibility**: Different implementations of the same port can be swapped without affecting the core business logic
+- **Testability**: The core business logic can be tested without depending on external systems
+
+#### Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph "Primary Adapters"
+        Web["Web Module<br>(REST Controllers)"]
+        SDK["SDK Module<br>(Client Libraries)"]
+    end
+    
+    subgraph "Core Domain"
+        Core["Core Module<br>(Business Logic)"]
+        Interfaces["Interfaces Module<br>(DTOs)"]
+        Models["Models Module<br>(Entities)"]
+    end
+    
+    subgraph "Secondary Adapters"
+        S3["S3 Storage Module<br>(FileStorageProvider)"]
+        GRPC["gRPC Storage Module<br>(StorageService)"]
+        Logalty["Logalty E-Signature Module<br>(ESignatureProvider)"]
+    end
+    
+    Web -->|Uses| Core
+    SDK -->|Uses| Core
+    
+    Core -->|Defines| FileStoragePort["FileStorageProvider<br>(Port)"]
+    Core -->|Defines| ESignaturePort["ESignatureProvider<br>(Port)"]
+    Core -->|Uses| Models
+    Core -->|Uses| Interfaces
+    
+    FileStoragePort -.->|Implemented by| S3
+    ESignaturePort -.->|Implemented by| Logalty
+    Core -->|Uses| GRPC
+    
+    style Core fill:#f9f,stroke:#333,stroke-width:2px
+    style FileStoragePort fill:#bbf,stroke:#333,stroke-width:1px
+    style ESignaturePort fill:#bbf,stroke:#333,stroke-width:1px
+    style S3 fill:#bfb,stroke:#333,stroke-width:1px
+    style Logalty fill:#bfb,stroke:#333,stroke-width:1px
+    style GRPC fill:#bfb,stroke:#333,stroke-width:1px
+    style Web fill:#fbb,stroke:#333,stroke-width:1px
+    style SDK fill:#fbb,stroke:#333,stroke-width:1px
+```
+
+The diagram illustrates the hexagonal architecture of the document management system:
+
+1. **Primary Adapters** (driving adapters) on the left side initiate interactions with the core domain:
+   - Web Module: Exposes the core functionality as a REST API
+   - SDK Module: Provides client libraries for external systems
+
+2. **Core Domain** in the center contains the business logic and defines the ports:
+   - Core Module: Contains the business logic and defines the provider interfaces (ports)
+   - Interfaces Module: Contains DTOs for communication between layers
+   - Models Module: Contains the domain entities and repositories
+
+3. **Secondary Adapters** (driven adapters) on the right side implement the ports defined by the core domain:
+   - S3 Storage Module: Implements the FileStorageProvider interface for Amazon S3
+   - gRPC Storage Module: Exposes the storage functionality as a gRPC service
+   - Logalty E-Signature Module: Implements the ESignatureProvider interface for Logalty
+
+### Storage Providers
+
+The application supports multiple storage providers through the `FileStorageProvider` interface:
+
+```java
+public interface FileStorageProvider {
+    Mono<String> uploadFile(FilePart filePart, String path);
+    Mono<String> uploadContent(Flux<DataBuffer> content, String fileName, String contentType, String path);
+    Flux<DataBuffer> downloadFile(String fileUrl);
+    Mono<Void> deleteFile(String fileUrl);
+    Mono<Boolean> fileExists(String fileUrl);
+    Mono<String> generatePresignedUrl(String fileUrl, long expirationInSeconds);
+    String getProviderName();
+}
+```
+
+The `FileStorageProviderRegistry` manages the available storage providers and allows the application to select the appropriate provider at runtime.
+
+Currently, the application includes the following storage provider implementations:
+- **S3StorageProviderImpl**: Stores files in Amazon S3
+- **GrpcStorageServiceImpl**: Exposes storage operations over gRPC for remote clients
+
+### E-Signature Providers
+
+The application supports multiple e-signature providers through the `ESignatureProvider` interface:
+
+```java
+public interface ESignatureProvider {
+    Mono<SignatureRequestDTO> initiateSignatureRequest(SignatureRequestDTO signatureRequest);
+    Mono<SignatureRequestDTO> getSignatureRequestStatus(Long signatureRequestId, String externalSignatureId);
+    Mono<Void> cancelSignatureRequest(Long signatureRequestId, String externalSignatureId);
+    Mono<SignatureProofDTO> getSignatureProof(Long signatureRequestId, String externalSignatureId);
+    Mono<Boolean> validateSignatureProof(SignatureProofDTO signatureProof);
+    String getProviderName();
+}
+```
+
+The `ESignatureProviderRegistry` manages the available e-signature providers and allows the application to select the appropriate provider at runtime.
+
+Currently, the application includes the following e-signature provider implementations:
+- **LogaltyProviderImpl**: Integrates with the Logalty e-signature service
+
+### gRPC Implementation
+
+The application includes a gRPC service for storage operations, which allows remote clients to:
+- Upload files
+- Download files
+- Delete files
+- Check if files exist
+- Generate pre-signed URLs
+
+The gRPC service is implemented in the `common-platform-document-mgmt-storage-grpc` module and uses the core `StorageService` to perform the actual storage operations. This allows the gRPC service to leverage the same storage provider infrastructure as the rest of the application.
 
 ## Entity Relationship Diagram
 
