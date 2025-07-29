@@ -50,7 +50,10 @@ public class FileStorageProviderConfig {
         private String secretKey;
         
         @NotBlank
-        private String bucketName;
+        private String privateBucketName;
+        
+        @NotBlank
+        private String publicBucketName;
 
         public String getEndpoint() {
             return endpoint;
@@ -84,12 +87,20 @@ public class FileStorageProviderConfig {
             this.secretKey = secretKey;
         }
 
-        public String getBucketName() {
-            return bucketName;
+        public String getPrivateBucketName() {
+            return privateBucketName;
         }
 
-        public void setBucketName(String bucketName) {
-            this.bucketName = bucketName;
+        public void setPrivateBucketName(String privateBucketName) {
+            this.privateBucketName = privateBucketName;
+        }
+        
+        public String getPublicBucketName() {
+            return publicBucketName;
+        }
+
+        public void setPublicBucketName(String publicBucketName) {
+            this.publicBucketName = publicBucketName;
         }
     }
 }
