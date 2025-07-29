@@ -63,7 +63,7 @@ public class S3StorageProviderImpl implements FileStorageProvider {
 }
 ```
 
-The implementation uses the AWS SDK for Java to interact with Amazon S3, providing the following functionality:
+The implementation uses the AWS SDK for Java v2 with the Netty non-blocking HTTP client to interact with Amazon S3 in a reactive way, providing the following functionality:
 
 - **File Upload to Private Bucket**: Uploads files directly to the private S3 bucket
 - **File Upload to Public Bucket**: Uploads files to the public S3 bucket for channel uploads
@@ -89,7 +89,20 @@ This approach provides several benefits:
 
 The implementation automatically detects which bucket a file URL belongs to and performs operations on the appropriate bucket.
 
-The implementation is reactive, using Project Reactor to provide non-blocking, asynchronous operations.
+### Reactive Implementation
+
+The implementation is fully reactive, using:
+
+- **AWS SDK for Java v2**: The latest version of the AWS SDK with improved performance and features
+- **Netty Non-blocking HTTP Client**: For efficient, non-blocking HTTP communication with S3
+- **Project Reactor**: For reactive programming model with Mono and Flux types
+- **Spring WebFlux**: For handling reactive file uploads and downloads
+
+This reactive approach provides several benefits:
+- **Non-blocking I/O**: All operations are non-blocking, allowing efficient use of system resources
+- **Backpressure Handling**: The implementation respects backpressure for streaming large files
+- **Efficient Resource Usage**: Minimizes thread usage and memory consumption
+- **Scalability**: Better handles concurrent requests without thread blocking
 
 ## Configuration
 
@@ -116,9 +129,54 @@ public S3StorageProviderImpl(
         @Value("${storage.s3.secret-key}") String secretKey,
         @Value("${storage.s3.private-bucket-name}") String privateBucketName,
         @Value("${storage.s3.public-bucket-name}") String publicBucketName) {
-    // ...
+    // Store configuration values
+    this.privateBucketName = privateBucketName;
+    this.publicBucketName = publicBucketName;
+    this.endpoint = endpoint;
+    this.basePrivateUrl = endpoint + "/" + privateBucketName + "/";
+    this.basePublicUrl = endpoint + "/" + publicBucketName + "/";
+    this.region = region;
+    this.accessKey = accessKey;
+    this.secretKey = secretKey;
 }
 ```
+
+The S3 clients are initialized in a `@PostConstruct` method:
+
+```java
+@PostConstruct
+public void init() {
+    // Create AWS credentials
+    AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
+    
+    // Configure the S3 async client with Netty for non-blocking I/O
+    this.s3AsyncClient = S3AsyncClient.builder()
+            .region(Region.of(region))
+            .endpointOverride(URI.create(endpoint))
+            .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+            .httpClient(NettyNioAsyncHttpClient.builder()
+                    .connectionTimeout(Duration.ofSeconds(30))
+                    .maxConcurrency(100)
+                    .build())
+            .build();
+    
+    // Configure the S3 presigner for generating pre-signed URLs
+    this.s3Presigner = S3Presigner.builder()
+            .region(Region.of(region))
+            .endpointOverride(URI.create(endpoint))
+            .credentialsProvider(StaticCredentialsProvider.create(awsCredentials))
+            .build();
+    
+    // Ensure buckets exist
+    ensureBucketExists(privateBucketName);
+    ensureBucketExists(publicBucketName);
+}
+```
+
+This initialization ensures:
+1. The S3 async client is configured with the Netty non-blocking HTTP client
+2. The S3 presigner is configured for generating pre-signed URLs
+3. Both the private and public buckets exist, creating them if necessary
 
 ## Usage
 
@@ -168,3 +226,30 @@ The S3 storage provider handles various error scenarios:
 - **Network Errors**: If there are network issues when communicating with S3, the provider will throw an exception
 
 All errors are logged and propagated as reactive errors, allowing the calling code to handle them using standard reactive error handling mechanisms.
+
+## Dependencies
+
+The S3 storage provider requires the following dependencies:
+
+```xml
+<!-- AWS SDK for Java v2 S3 -->
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>s3</artifactId>
+    <version>2.25.1</version>
+</dependency>
+
+<!-- AWS SDK for Java v2 Netty NIO HTTP Client -->
+<dependency>
+    <groupId>software.amazon.awssdk</groupId>
+    <artifactId>netty-nio-client</artifactId>
+    <version>2.25.1</version>
+</dependency>
+```
+
+These dependencies provide:
+
+1. **AWS SDK for Java v2 S3**: The core S3 client library with improved performance and features compared to v1
+2. **Netty NIO HTTP Client**: A non-blocking HTTP client for the AWS SDK, which works well with reactive applications
+
+The implementation also depends on Spring WebFlux and Project Reactor, which are provided by the core module.
