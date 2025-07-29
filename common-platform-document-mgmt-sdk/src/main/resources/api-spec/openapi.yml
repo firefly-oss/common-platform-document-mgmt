@@ -28,6 +28,8 @@ tags:
     description: API for managing signature request statuses
   - name: Signature Requests
     description: API for managing signature requests
+  - name: Storage
+    description: API for file storage operations
   - name: Tags
     description: API for managing tags
   - name: Document Types
@@ -36,6 +38,8 @@ tags:
     description: API for managing file metadata
   - name: Documents
     description: API for managing documents and related resources
+  - name: E-Signatures
+    description: API for e-signature operations
   - name: Signature Signers
     description: API for managing signature signers
   - name: Document Statuses
@@ -2343,7 +2347,7 @@ paths:
         - Files
       summary: Delete file
       description: Deletes a file by its ID
-      operationId: deleteFile
+      operationId: deleteFile_1
       parameters:
         - name: id
           in: path
@@ -3657,6 +3661,99 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TagDTO'
+  /api/v1/storage/upload:
+    post:
+      tags:
+        - Storage
+      summary: Upload file
+      description: Uploads a file to the storage provider
+      operationId: uploadFile
+      parameters:
+        - name: path
+          in: query
+          description: Path where the file should be stored
+          required: true
+          schema:
+            type: string
+        - name: provider
+          in: query
+          description: Storage provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Idempotency-Key
+          in: header
+          description: Unique key for idempotent requests. If provided, ensures that identical requests with the same key will only be processed once.
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - file
+              type: object
+              properties:
+                file:
+                  type: string
+                  description: File to upload
+                  format: binary
+      responses:
+        '201':
+          description: File uploaded successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Invalid file or path
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
   /api/v1/signature-statuses/filter:
     post:
       tags:
@@ -5157,6 +5254,168 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FileDTO'
+  /api/v1/e-signatures/validate-proof:
+    post:
+      tags:
+        - E-Signatures
+      summary: Validate signature proof
+      description: Validates a signature proof with the specified provider
+      operationId: validateSignatureProof
+      parameters:
+        - name: provider
+          in: query
+          description: E-signature provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Idempotency-Key
+          in: header
+          description: Unique key for idempotent requests. If provided, ensures that identical requests with the same key will only be processed once.
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignatureProofDTO'
+        required: true
+      responses:
+        '200':
+          description: Signature proof validation result
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '400':
+          description: Invalid signature proof data
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: boolean
+  /api/v1/e-signatures/initiate:
+    post:
+      tags:
+        - E-Signatures
+      summary: Initiate signature request
+      description: Initiates a new signature request with the specified provider
+      operationId: initiateSignature
+      parameters:
+        - name: provider
+          in: query
+          description: E-signature provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Idempotency-Key
+          in: header
+          description: Unique key for idempotent requests. If provided, ensures that identical requests with the same key will only be processed once.
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignatureRequestDTO'
+        required: true
+      responses:
+        '201':
+          description: Signature request initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureRequestDTO'
+        '400':
+          description: Invalid signature request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureRequestDTO'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureRequestDTO'
   /api/v1/documents/{documentId}/versions/filter:
     post:
       tags:
@@ -6324,6 +6583,386 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DocumentStatusDTO'
+  /api/v1/storage/presigned-url:
+    get:
+      tags:
+        - Storage
+      summary: Generate pre-signed URL
+      description: Generates a pre-signed URL for temporary access to a file
+      operationId: generatePresignedUrl
+      parameters:
+        - name: url
+          in: query
+          description: URL of the file
+          required: true
+          schema:
+            type: string
+        - name: expiration
+          in: query
+          description: Expiration time in seconds
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: provider
+          in: query
+          description: Storage provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pre-signed URL generated successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: File not found
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+  /api/v1/storage/exists:
+    get:
+      tags:
+        - Storage
+      summary: Check if file exists
+      description: Checks if a file exists in the storage provider
+      operationId: fileExists
+      parameters:
+        - name: url
+          in: query
+          description: URL of the file to check
+          required: true
+          schema:
+            type: string
+        - name: provider
+          in: query
+          description: Storage provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File existence check result
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: boolean
+  /api/v1/storage/download:
+    get:
+      tags:
+        - Storage
+      summary: Download file
+      description: Downloads a file from the storage provider
+      operationId: downloadFile
+      parameters:
+        - name: url
+          in: query
+          description: URL of the file to download
+          required: true
+          schema:
+            type: string
+        - name: provider
+          in: query
+          description: Storage provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File downloaded successfully
+          content:
+            application/octet-stream: {}
+        '404':
+          description: File not found
+          content:
+            application/octet-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataBuffer'
+        '500':
+          description: Internal server error
+          content:
+            application/octet-stream:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataBuffer'
+  /api/v1/e-signatures/{id}/status:
+    get:
+      tags:
+        - E-Signatures
+      summary: Get signature status
+      description: Gets the status of a signature request from the specified provider
+      operationId: getSignatureStatus
+      parameters:
+        - name: id
+          in: path
+          description: Signature request ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: provider
+          in: query
+          description: E-signature provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Signature status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureRequestDTO'
+        '404':
+          description: Signature request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureRequestDTO'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureRequestDTO'
+  /api/v1/e-signatures/{id}/proof:
+    get:
+      tags:
+        - E-Signatures
+      summary: Get signature proof
+      description: Gets the proof of signature from the specified provider
+      operationId: getSignatureProof
+      parameters:
+        - name: id
+          in: path
+          description: Signature request ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: provider
+          in: query
+          description: E-signature provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Signature proof retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureProofDTO'
+        '404':
+          description: Signature request not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureProofDTO'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureProofDTO'
   /api/v1/documents/{documentId}/tags/{tagId}:
     get:
       tags:
@@ -6463,6 +7102,133 @@ paths:
           description: Document tag deleted successfully
         '404':
           description: Document tag not found
+        '500':
+          description: Internal server error
+  /api/v1/storage:
+    delete:
+      tags:
+        - Storage
+      summary: Delete file
+      description: Deletes a file from the storage provider
+      operationId: deleteFile
+      parameters:
+        - name: url
+          in: query
+          description: URL of the file to delete
+          required: true
+          schema:
+            type: string
+        - name: provider
+          in: query
+          description: Storage provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      responses:
+        '204':
+          description: File deleted successfully
+        '404':
+          description: File not found
+        '500':
+          description: Internal server error
+  /api/v1/e-signatures/{id}:
+    delete:
+      tags:
+        - E-Signatures
+      summary: Cancel signature request
+      description: Cancels a signature request with the specified provider
+      operationId: cancelSignature
+      parameters:
+        - name: id
+          in: path
+          description: Signature request ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: provider
+          in: query
+          description: E-signature provider name (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Party-ID
+          in: header
+          description: Identifier of the client (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Employee-ID
+          in: header
+          description: Identifier of the employee (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Service-Account-ID
+          in: header
+          description: Identifier of the service account (at least one of X-Party-ID, X-Employee-ID, or X-Service-Account-ID is required)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Roles
+          in: header
+          description: Roles of the subject (CUSTOMER, ADMIN, CUSTOMER_SUPPORT, SUPERVISOR, MANAGER, BRANCH_STAFF, SERVICE_ACCOUNT), comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Auth-Scopes
+          in: header
+          description: OAuth2 scopes like contracts.read, accounts.write, comma-separated (optional)
+          required: false
+          schema:
+            type: string
+        - name: X-Request-ID
+          in: header
+          description: Unique identifier for the request, used for traceability (optional)
+          required: false
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Signature request canceled successfully
+        '404':
+          description: Signature request not found
         '500':
           description: Internal server error
 components:
@@ -7479,3 +8245,5 @@ components:
           description: The current page number, typically zero-based.
           format: int32
       description: Represents a paginated response containing a list of items and pagination metadata.
+    DataBuffer:
+      type: object
