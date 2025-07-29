@@ -193,15 +193,201 @@ The application includes a gRPC service for storage operations, which allows rem
 
 The gRPC service is implemented in the `common-platform-document-mgmt-storage-grpc` module and uses the core `StorageService` to perform the actual storage operations. This allows the gRPC service to leverage the same storage provider infrastructure as the rest of the application.
 
-#### Channel Upload Workflow
+#### File Upload and Download Flows (gRPC)
 
-The gRPC service supports a special workflow for channel uploads:
+The gRPC service provides different flows for internal and external (channel) file operations:
 
-1. External clients upload files using the `UploadFileFromChannel` gRPC method
-2. Files are stored in the public bucket
-3. After validation, files can be moved to the private bucket using the `MoveFileFromPublicToPrivate` gRPC method
+##### Internal Upload Flow (gRPC)
+
+For files uploaded from internal systems, the flow is:
+
+```mermaid
+sequenceDiagram
+    participant Client as Internal Client
+    participant GRPC as gRPC Service
+    participant Storage as Storage Service
+    participant Provider as Storage Provider
+    participant Private as Private Bucket
+
+    Client->>GRPC: UploadFile(stream FileUploadRequest)
+    Note over Client,GRPC: First message contains metadata
+    Note over Client,GRPC: Subsequent messages contain file chunks
+    GRPC->>Storage: uploadContent(content, fileName, contentType, path)
+    Storage->>Provider: uploadContent(content, fileName, contentType, path)
+    Provider->>Private: Store file
+    Private-->>Provider: Success
+    Provider-->>Storage: Return file URL
+    Storage-->>GRPC: Return file URL
+    GRPC-->>Client: FileUploadResponse with file URL
+```
+
+##### External (Channel) Upload Flow (gRPC)
+
+For files uploaded from external channels, the flow is:
+
+```mermaid
+sequenceDiagram
+    participant Client as External Client
+    participant GRPC as gRPC Service
+    participant Storage as Storage Service
+    participant Provider as Storage Provider
+    participant Public as Public Bucket
+    participant Private as Private Bucket
+
+    Client->>GRPC: UploadFileFromChannel(stream FileUploadRequest)
+    Note over Client,GRPC: First message contains metadata
+    Note over Client,GRPC: Subsequent messages contain file chunks
+    GRPC->>Storage: uploadContentToPublicBucket(content, fileName, contentType, path)
+    Storage->>Provider: uploadContentToPublicBucket(content, fileName, contentType, path)
+    Provider->>Public: Store file
+    Public-->>Provider: Success
+    Provider-->>Storage: Return public file URL
+    Storage-->>GRPC: Return public file URL
+    GRPC-->>Client: FileUploadResponse with public file URL
+    
+    Note over Client,GRPC: After validation
+    Client->>GRPC: MoveFileFromPublicToPrivate(publicFileUrl)
+    GRPC->>Storage: moveFileFromPublicToPrivate(publicFileUrl)
+    Storage->>Provider: moveFileFromPublicToPrivate(publicFileUrl)
+    Provider->>Public: Get file
+    Public-->>Provider: File content
+    Provider->>Private: Store file
+    Private-->>Provider: Success
+    Provider->>Public: Delete file
+    Public-->>Provider: Success
+    Provider-->>Storage: Return private file URL
+    Storage-->>GRPC: Return private file URL
+    GRPC-->>Client: MoveFileResponse with private file URL
+```
+
+##### File Download Flow (gRPC)
+
+The download flow is the same for both internal and external clients:
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant GRPC as gRPC Service
+    participant Storage as Storage Service
+    participant Provider as Storage Provider
+    participant Bucket as Storage Bucket
+
+    Client->>GRPC: DownloadFile(FileDownloadRequest)
+    Note over Client,GRPC: Request contains file URL
+    GRPC->>Storage: downloadFile(fileUrl)
+    Storage->>Provider: downloadFile(fileUrl)
+    Provider->>Bucket: Get file
+    Bucket-->>Provider: File content
+    Provider-->>Storage: Return file content as Flux<DataBuffer>
+    Storage-->>GRPC: Return file content
+    GRPC-->>Client: Stream of FileDownloadResponse
+    Note over Client,GRPC: First message contains metadata
+    Note over Client,GRPC: Subsequent messages contain file chunks
+```
 
 This workflow reduces network traffic by avoiding the need to pass binary data through multiple network layers, resulting in better performance and user experience.
+
+### REST API Implementation
+
+The application also provides a REST API for storage operations through the `StorageController`. This controller exposes endpoints for:
+- Uploading files to the private bucket
+- Uploading files to the public bucket
+- Moving files from public to private bucket
+- Downloading files
+- Deleting files
+- Checking if files exist
+- Generating pre-signed URLs
+
+#### File Upload and Download Flows (REST)
+
+The REST API provides different flows for internal and external (channel) file operations:
+
+##### Internal Upload Flow (REST)
+
+For files uploaded from internal systems, the flow is:
+
+```mermaid
+sequenceDiagram
+    participant Client as Internal Client
+    participant REST as REST API
+    participant Storage as Storage Service
+    participant Provider as Storage Provider
+    participant Private as Private Bucket
+
+    Client->>REST: POST /api/v1/storage/upload
+    Note over Client,REST: Multipart form with file and path
+    REST->>Storage: uploadFile(filePart, path)
+    Storage->>Provider: uploadFile(filePart, path)
+    Provider->>Private: Store file
+    Private-->>Provider: Success
+    Provider-->>Storage: Return file URL
+    Storage-->>REST: Return file URL
+    REST-->>Client: 201 Created with file URL
+```
+
+##### External (Channel) Upload Flow (REST)
+
+For files uploaded from external channels, the flow is:
+
+```mermaid
+sequenceDiagram
+    participant Client as External Client
+    participant REST as REST API
+    participant Storage as Storage Service
+    participant Provider as Storage Provider
+    participant Public as Public Bucket
+    participant Private as Private Bucket
+
+    Client->>REST: POST /api/v1/storage/upload/public
+    Note over Client,REST: Multipart form with file and path
+    REST->>Storage: uploadFileToPublicBucket(filePart, path)
+    Storage->>Provider: uploadFileToPublicBucket(filePart, path)
+    Provider->>Public: Store file
+    Public-->>Provider: Success
+    Provider-->>Storage: Return public file URL
+    Storage-->>REST: Return public file URL
+    REST-->>Client: 201 Created with public file URL
+    
+    Note over Client,REST: After validation
+    Client->>REST: POST /api/v1/storage/move-to-private
+    Note over Client,REST: Request param: url=publicFileUrl
+    REST->>Storage: moveFileFromPublicToPrivate(publicFileUrl)
+    Storage->>Provider: moveFileFromPublicToPrivate(publicFileUrl)
+    Provider->>Public: Get file
+    Public-->>Provider: File content
+    Provider->>Private: Store file
+    Private-->>Provider: Success
+    Provider->>Public: Delete file
+    Public-->>Provider: Success
+    Provider-->>Storage: Return private file URL
+    Storage-->>REST: Return private file URL
+    REST-->>Client: 200 OK with private file URL
+```
+
+##### File Download Flow (REST)
+
+The download flow is the same for both internal and external clients:
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant REST as REST API
+    participant Storage as Storage Service
+    participant Provider as Storage Provider
+    participant Bucket as Storage Bucket
+
+    Client->>REST: GET /api/v1/storage/download?url=fileUrl
+    REST->>Storage: downloadFile(fileUrl)
+    Storage->>Provider: downloadFile(fileUrl)
+    Provider->>Bucket: Get file
+    Bucket-->>Provider: File content
+    Provider-->>Storage: Return file content as Flux<DataBuffer>
+    Storage-->>REST: Return file content
+    REST-->>Client: 200 OK with file content
+    Note over Client,REST: Content-Disposition: attachment
+```
+
+This REST API provides a standard HTTP interface for file operations, making it easy to integrate with web applications and other systems that prefer REST over gRPC.
 
 ## Entity Relationship Diagram
 
