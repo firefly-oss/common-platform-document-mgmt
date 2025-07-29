@@ -7,6 +7,7 @@ This module provides a gRPC service implementation for storage operations, allow
 - [Overview](#overview)
 - [Hexagonal Architecture](#hexagonal-architecture)
 - [gRPC Service](#grpc-service)
+- [Two-Bucket System](#two-bucket-system)
 - [Implementation Details](#implementation-details)
 - [Configuration](#configuration)
 - [Client Usage](#client-usage)
@@ -34,7 +35,9 @@ This approach has several benefits:
 
 The gRPC service is defined in a Protocol Buffers (protobuf) file, which generates the service interface and message classes. The service definition includes operations for:
 
-- Uploading files (streaming)
+- Uploading files directly to private bucket (streaming)
+- Uploading files from channel to public bucket (streaming)
+- Moving files from public bucket to private bucket
 - Downloading files
 - Deleting files
 - Checking if files exist
@@ -46,13 +49,68 @@ Here's a simplified version of the service definition:
 syntax = "proto3";
 
 service StorageService {
-  rpc uploadFile(stream FileUploadRequest) returns (FileUploadResponse);
-  rpc downloadFile(FileDownloadRequest) returns (stream FileDownloadResponse);
-  rpc deleteFile(FileDeleteRequest) returns (FileDeleteResponse);
-  rpc fileExists(FileExistsRequest) returns (FileExistsResponse);
-  rpc generatePresignedUrl(PresignedUrlRequest) returns (PresignedUrlResponse);
+  // Upload a file directly to private bucket
+  rpc UploadFile (stream FileUploadRequest) returns (FileUploadResponse);
+
+  // Upload a file from channel to public bucket
+  rpc UploadFileFromChannel (stream FileUploadRequest) returns (FileUploadResponse);
+
+  // Move a file from public bucket to private bucket
+  rpc MoveFileFromPublicToPrivate (MoveFileRequest) returns (MoveFileResponse);
+
+  // Download a file
+  rpc DownloadFile (FileDownloadRequest) returns (stream FileDownloadResponse);
+
+  // Delete a file
+  rpc DeleteFile (FileDeleteRequest) returns (FileDeleteResponse);
+
+  // Check if a file exists
+  rpc FileExists (FileExistsRequest) returns (FileExistsResponse);
+
+  // Generate a pre-signed URL
+  rpc GeneratePresignedUrl (PresignedUrlRequest) returns (PresignedUrlResponse);
+}
+
+message FileMetadata {
+  string file_name = 1;
+  string content_type = 2;
+  string path = 3;
+  string provider_name = 4; // Optional, uses default if not provided
+  UploadSource source = 5; // Source of the upload (INTERNAL or CHANNEL)
+}
+
+// Source of the upload
+enum UploadSource {
+  INTERNAL = 0; // Default - upload from internal system
+  CHANNEL = 1;  // Upload from channel
+}
+
+message MoveFileRequest {
+  string public_file_url = 1;
+  string provider_name = 2; // Optional, uses default if not provided
+}
+
+message MoveFileResponse {
+  string private_file_url = 1;
 }
 ```
+
+## Two-Bucket System
+
+The gRPC service supports the two-bucket storage system to optimize file uploads and improve security:
+
+1. **Private Bucket**: The main storage bucket for all documents, not directly accessible from outside the system
+2. **Public Bucket**: A temporary storage bucket for files uploaded from external channels
+
+The workflow for file uploads depends on the source:
+
+- **Internal Uploads**: Files uploaded from internal systems using the `UploadFile` method go directly to the private bucket
+- **Channel Uploads**: Files uploaded from external channels using the `UploadFileFromChannel` method go to the public bucket first, then are moved to the private bucket after validation using the `MoveFileFromPublicToPrivate` method
+
+This approach provides several benefits:
+- **Reduced Network Traffic**: Files uploaded from external channels don't need to pass through multiple network layers
+- **Improved Security**: The private bucket is not directly accessible from outside the system
+- **Better User Experience**: Direct uploads to the public bucket are faster and more reliable
 
 ## Implementation Details
 
@@ -66,27 +124,37 @@ public class GrpcStorageServiceImpl extends StorageServiceGrpc.StorageServiceImp
 
     @Override
     public StreamObserver<FileUploadRequest> uploadFile(StreamObserver<FileUploadResponse> responseObserver) {
-        // Implementation
+        // Implementation for uploading files directly to private bucket
+    }
+
+    @Override
+    public StreamObserver<FileUploadRequest> uploadFileFromChannel(StreamObserver<FileUploadResponse> responseObserver) {
+        // Implementation for uploading files from channel to public bucket
+    }
+
+    @Override
+    public void moveFileFromPublicToPrivate(MoveFileRequest request, StreamObserver<MoveFileResponse> responseObserver) {
+        // Implementation for moving files from public bucket to private bucket
     }
 
     @Override
     public void downloadFile(FileDownloadRequest request, StreamObserver<FileDownloadResponse> responseObserver) {
-        // Implementation
+        // Implementation for downloading files
     }
 
     @Override
     public void deleteFile(FileDeleteRequest request, StreamObserver<FileDeleteResponse> responseObserver) {
-        // Implementation
+        // Implementation for deleting files
     }
 
     @Override
     public void fileExists(FileExistsRequest request, StreamObserver<FileExistsResponse> responseObserver) {
-        // Implementation
+        // Implementation for checking if files exist
     }
 
     @Override
     public void generatePresignedUrl(PresignedUrlRequest request, StreamObserver<PresignedUrlResponse> responseObserver) {
-        // Implementation
+        // Implementation for generating pre-signed URLs
     }
 }
 ```
@@ -136,7 +204,7 @@ grpc:
 
 ## Client Usage
 
-Remote clients can use the generated gRPC client to interact with the storage service. Here's an example of how a client might upload a file:
+Remote clients can use the generated gRPC client to interact with the storage service. Here's an example of how a client might upload a file from a channel:
 
 ```java
 // Create a gRPC channel
@@ -151,7 +219,29 @@ StorageServiceGrpc.StorageServiceStub stub = StorageServiceGrpc.newStub(channel)
 StreamObserver<FileUploadResponse> responseObserver = new StreamObserver<FileUploadResponse>() {
     @Override
     public void onNext(FileUploadResponse response) {
-        System.out.println("File uploaded: " + response.getFileUrl());
+        System.out.println("File uploaded to public bucket: " + response.getFileUrl());
+        
+        // Move the file from public to private bucket
+        MoveFileRequest moveRequest = MoveFileRequest.newBuilder()
+            .setPublicFileUrl(response.getFileUrl())
+            .build();
+            
+        stub.moveFileFromPublicToPrivate(moveRequest, new StreamObserver<MoveFileResponse>() {
+            @Override
+            public void onNext(MoveFileResponse moveResponse) {
+                System.out.println("File moved to private bucket: " + moveResponse.getPrivateFileUrl());
+            }
+            
+            @Override
+            public void onError(Throwable t) {
+                System.err.println("Error moving file: " + t.getMessage());
+            }
+            
+            @Override
+            public void onCompleted() {
+                System.out.println("Move operation completed");
+            }
+        });
     }
 
     @Override
@@ -165,14 +255,15 @@ StreamObserver<FileUploadResponse> responseObserver = new StreamObserver<FileUpl
     }
 };
 
-// Create a request observer
-StreamObserver<FileUploadRequest> requestObserver = stub.uploadFile(responseObserver);
+// Create a request observer for channel upload
+StreamObserver<FileUploadRequest> requestObserver = stub.uploadFileFromChannel(responseObserver);
 
-// Send metadata
+// Send metadata with CHANNEL source
 FileMetadata metadata = FileMetadata.newBuilder()
     .setFileName("example.txt")
     .setContentType("text/plain")
     .setPath("/documents")
+    .setSource(UploadSource.CHANNEL)
     .build();
 
 requestObserver.onNext(FileUploadRequest.newBuilder()

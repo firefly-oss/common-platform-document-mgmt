@@ -118,6 +118,124 @@ public class GrpcStorageServiceImpl extends StorageServiceGrpc.StorageServiceImp
             }
         };
     }
+    
+    @Override
+    public StreamObserver<FileUploadRequest> uploadFileFromChannel(StreamObserver<FileUploadResponse> responseObserver) {
+        log.info("gRPC uploadFileFromChannel request received");
+        
+        // Create a sink for the file content
+        Sinks.Many<DataBuffer> contentSink = Sinks.many().unicast().onBackpressureBuffer();
+        
+        // Reference to store metadata
+        AtomicReference<FileMetadata> metadataRef = new AtomicReference<>();
+        
+        return new StreamObserver<FileUploadRequest>() {
+            @Override
+            public void onNext(FileUploadRequest request) {
+                if (request.hasMetadata()) {
+                    // Store metadata
+                    FileMetadata metadata = request.getMetadata();
+                    metadataRef.set(metadata);
+                    log.info("Received file metadata from channel: {}", metadata.getFileName());
+                } else if (request.hasChunk()) {
+                    // Add chunk to content sink
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(request.getChunk().toByteArray());
+                    DataBuffer dataBuffer = BUFFER_FACTORY.wrap(byteBuffer);
+                    contentSink.tryEmitNext(dataBuffer);
+                }
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.error("Error in uploadFileFromChannel stream", t);
+                contentSink.tryEmitError(t);
+                responseObserver.onError(Status.INTERNAL
+                        .withDescription("Error processing upload from channel: " + t.getMessage())
+                        .asException());
+            }
+
+            @Override
+            public void onCompleted() {
+                log.info("Upload from channel stream completed");
+                contentSink.tryEmitComplete();
+                
+                // Get metadata
+                FileMetadata metadata = metadataRef.get();
+                if (metadata == null) {
+                    responseObserver.onError(Status.INVALID_ARGUMENT
+                            .withDescription("No metadata received")
+                            .asException());
+                    return;
+                }
+                
+                // Upload content to public bucket
+                Flux<DataBuffer> content = contentSink.asFlux();
+                Mono<String> result;
+                
+                if (metadata.getProviderName().isEmpty()) {
+                    result = storageService.uploadContentToPublicBucket(
+                            content,
+                            metadata.getFileName(),
+                            metadata.getContentType(),
+                            metadata.getPath());
+                } else {
+                    result = storageService.uploadContentToPublicBucket(
+                            content,
+                            metadata.getFileName(),
+                            metadata.getContentType(),
+                            metadata.getPath(),
+                            metadata.getProviderName());
+                }
+                
+                // Process result
+                result.subscribe(
+                        fileUrl -> {
+                            FileUploadResponse response = FileUploadResponse.newBuilder()
+                                    .setFileUrl(fileUrl)
+                                    .build();
+                            responseObserver.onNext(response);
+                            responseObserver.onCompleted();
+                        },
+                        error -> {
+                            log.error("Error uploading file from channel", error);
+                            responseObserver.onError(Status.INTERNAL
+                                    .withDescription("Error uploading file from channel: " + error.getMessage())
+                                    .asException());
+                        }
+                );
+            }
+        };
+    }
+    
+    @Override
+    public void moveFileFromPublicToPrivate(MoveFileRequest request, StreamObserver<MoveFileResponse> responseObserver) {
+        log.info("gRPC moveFileFromPublicToPrivate request received for URL: {}", request.getPublicFileUrl());
+        
+        // Move file from public to private bucket
+        Mono<String> result;
+        if (request.getProviderName().isEmpty()) {
+            result = storageService.moveFileFromPublicToPrivate(request.getPublicFileUrl());
+        } else {
+            result = storageService.moveFileFromPublicToPrivate(request.getPublicFileUrl(), request.getProviderName());
+        }
+        
+        // Process result
+        result.subscribe(
+                privateFileUrl -> {
+                    MoveFileResponse response = MoveFileResponse.newBuilder()
+                            .setPrivateFileUrl(privateFileUrl)
+                            .build();
+                    responseObserver.onNext(response);
+                    responseObserver.onCompleted();
+                },
+                error -> {
+                    log.error("Error moving file from public to private bucket", error);
+                    responseObserver.onError(Status.INTERNAL
+                            .withDescription("Error moving file: " + error.getMessage())
+                            .asException());
+                }
+        );
+    }
 
     @Override
     public void downloadFile(FileDownloadRequest request, StreamObserver<FileDownloadResponse> responseObserver) {

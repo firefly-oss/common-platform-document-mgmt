@@ -11,6 +11,12 @@ service StorageService {
   // Upload a file
   rpc UploadFile (stream FileUploadRequest) returns (FileUploadResponse);
   
+  // Upload a file from channel to public bucket
+  rpc UploadFileFromChannel (stream FileUploadRequest) returns (FileUploadResponse);
+  
+  // Move a file from public bucket to private bucket
+  rpc MoveFileFromPublicToPrivate (MoveFileRequest) returns (MoveFileResponse);
+  
   // Download a file
   rpc DownloadFile (FileDownloadRequest) returns (stream FileDownloadResponse);
   
@@ -40,11 +46,29 @@ message FileMetadata {
   string content_type = 2;
   string path = 3;
   string provider_name = 4; // Optional, uses default if not provided
+  UploadSource source = 5; // Source of the upload (INTERNAL or CHANNEL)
+}
+
+// Source of the upload
+enum UploadSource {
+  INTERNAL = 0; // Default - upload from internal system
+  CHANNEL = 1;  // Upload from channel
 }
 
 // Response message for file upload
 message FileUploadResponse {
   string file_url = 1;
+}
+
+// Request message for moving a file from public to private bucket
+message MoveFileRequest {
+  string public_file_url = 1;
+  string provider_name = 2; // Optional, uses default if not provided
+}
+
+// Response message for moving a file
+message MoveFileResponse {
+  string private_file_url = 1;
 }
 
 // Request message for downloading a file
