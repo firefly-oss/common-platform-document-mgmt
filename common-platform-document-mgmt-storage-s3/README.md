@@ -35,7 +35,16 @@ public class S3StorageProviderImpl implements FileStorageProvider {
     public Mono<String> uploadFile(FilePart filePart, String path);
     
     @Override
+    public Mono<String> uploadFileToPublicBucket(FilePart filePart, String path);
+    
+    @Override
     public Mono<String> uploadContent(Flux<DataBuffer> content, String fileName, String contentType, String path);
+    
+    @Override
+    public Mono<String> uploadContentToPublicBucket(Flux<DataBuffer> content, String fileName, String contentType, String path);
+    
+    @Override
+    public Mono<String> moveFileFromPublicToPrivate(String publicFileUrl);
     
     @Override
     public Flux<DataBuffer> downloadFile(String fileUrl);
@@ -56,12 +65,29 @@ public class S3StorageProviderImpl implements FileStorageProvider {
 
 The implementation uses the AWS SDK for Java to interact with Amazon S3, providing the following functionality:
 
-- **File Upload**: Uploads files to S3 buckets, generating unique keys based on the path and filename
-- **Content Upload**: Uploads content streams to S3 buckets
-- **File Download**: Downloads files from S3 buckets as reactive streams
-- **File Deletion**: Deletes files from S3 buckets
-- **File Existence Check**: Checks if files exist in S3 buckets
+- **File Upload to Private Bucket**: Uploads files directly to the private S3 bucket
+- **File Upload to Public Bucket**: Uploads files to the public S3 bucket for channel uploads
+- **Content Upload to Private Bucket**: Uploads content streams to the private S3 bucket
+- **Content Upload to Public Bucket**: Uploads content streams to the public S3 bucket for channel uploads
+- **Move File Between Buckets**: Moves files from the public bucket to the private bucket
+- **File Download**: Downloads files from either S3 bucket as reactive streams
+- **File Deletion**: Deletes files from either S3 bucket
+- **File Existence Check**: Checks if files exist in either S3 bucket
 - **Pre-signed URL Generation**: Generates pre-signed URLs for temporary access to files
+
+### Two-Bucket System
+
+The S3 storage provider implements a two-bucket system for optimized file handling:
+
+1. **Private Bucket**: The main storage bucket for all documents, not directly accessible from outside the system
+2. **Public Bucket**: A temporary storage bucket for files uploaded from external channels
+
+This approach provides several benefits:
+- **Reduced Network Traffic**: Files uploaded from external channels don't need to pass through multiple network layers
+- **Improved Security**: The private bucket is not directly accessible from outside the system
+- **Better User Experience**: Direct uploads to the public bucket are faster and more reliable
+
+The implementation automatically detects which bucket a file URL belongs to and performs operations on the appropriate bucket.
 
 The implementation is reactive, using Project Reactor to provide non-blocking, asynchronous operations.
 
@@ -76,7 +102,8 @@ storage:
     region: us-east-1
     access-key: your-access-key
     secret-key: your-secret-key
-    bucket-name: your-bucket-name
+    private-bucket-name: your-private-bucket-name
+    public-bucket-name: your-public-bucket-name
 ```
 
 These properties are injected into the `S3StorageProviderImpl` constructor:
@@ -87,7 +114,8 @@ public S3StorageProviderImpl(
         @Value("${storage.s3.region}") String region,
         @Value("${storage.s3.access-key}") String accessKey,
         @Value("${storage.s3.secret-key}") String secretKey,
-        @Value("${storage.s3.bucket-name}") String bucketName) {
+        @Value("${storage.s3.private-bucket-name}") String privateBucketName,
+        @Value("${storage.s3.public-bucket-name}") String publicBucketName) {
     // ...
 }
 ```
@@ -108,6 +136,16 @@ public class MyService {
     public Mono<String> uploadFile(FilePart filePart, String path) {
         FileStorageProvider s3Provider = providerRegistry.getProvider("AmazonS3");
         return s3Provider.uploadFile(filePart, path);
+    }
+    
+    public Mono<String> uploadFileToPublicBucket(FilePart filePart, String path) {
+        FileStorageProvider s3Provider = providerRegistry.getProvider("AmazonS3");
+        return s3Provider.uploadFileToPublicBucket(filePart, path);
+    }
+    
+    public Mono<String> moveFileFromPublicToPrivate(String publicFileUrl) {
+        FileStorageProvider s3Provider = providerRegistry.getProvider("AmazonS3");
+        return s3Provider.moveFileFromPublicToPrivate(publicFileUrl);
     }
 }
 ```

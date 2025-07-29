@@ -26,8 +26,11 @@ public class S3StorageProviderImpl implements FileStorageProvider {
     private static final String PROVIDER_NAME = "AmazonS3";
     private static final DefaultDataBufferFactory BUFFER_FACTORY = new DefaultDataBufferFactory();
 
-    private final String bucketName;
-    private final String baseUrl;
+    private final String privateBucketName;
+    private final String publicBucketName;
+    private final String basePrivateUrl;
+    private final String basePublicUrl;
+    private final String endpoint;
     private final String region;
     private final String accessKey;
     private final String secretKey;
@@ -39,80 +42,134 @@ public class S3StorageProviderImpl implements FileStorageProvider {
      * @param region the AWS region
      * @param accessKey the AWS access key
      * @param secretKey the AWS secret key
-     * @param bucketName the S3 bucket name
+     * @param privateBucketName the S3 private bucket name
+     * @param publicBucketName the S3 public bucket name
      */
     public S3StorageProviderImpl(
             @Value("${storage.s3.endpoint}") String endpoint,
             @Value("${storage.s3.region}") String region,
             @Value("${storage.s3.access-key}") String accessKey,
             @Value("${storage.s3.secret-key}") String secretKey,
-            @Value("${storage.s3.bucket-name}") String bucketName) {
+            @Value("${storage.s3.private-bucket-name}") String privateBucketName,
+            @Value("${storage.s3.public-bucket-name}") String publicBucketName) {
         
-        this.bucketName = bucketName;
-        this.baseUrl = endpoint + "/" + bucketName + "/";
+        this.privateBucketName = privateBucketName;
+        this.publicBucketName = publicBucketName;
+        this.endpoint = endpoint;
+        this.basePrivateUrl = endpoint + "/" + privateBucketName + "/";
+        this.basePublicUrl = endpoint + "/" + publicBucketName + "/";
         this.region = region;
         this.accessKey = accessKey;
         this.secretKey = secretKey;
         
-        log.info("Initialized S3 storage provider with bucket: {}", bucketName);
+        log.info("Initialized S3 storage provider with private bucket: {} and public bucket: {}", 
+                privateBucketName, publicBucketName);
     }
 
     @Override
     public Mono<String> uploadFile(FilePart filePart, String path) {
         String key = generateKey(path, filePart.filename());
-        log.info("Uploading file to S3: {}", key);
+        log.info("Uploading file to S3 private bucket: {}", key);
         
-        // In a real implementation, this would use the AWS SDK to upload the file to S3
+        // In a real implementation, this would use the AWS SDK to upload the file to S3 private bucket
         // For now, we'll just return a simulated URL
-        return Mono.just(baseUrl + key);
+        return Mono.just(basePrivateUrl + key);
+    }
+
+    @Override
+    public Mono<String> uploadFileToPublicBucket(FilePart filePart, String path) {
+        String key = generateKey(path, filePart.filename());
+        log.info("Uploading file to S3 public bucket: {}", key);
+        
+        // In a real implementation, this would use the AWS SDK to upload the file to S3 public bucket
+        // For now, we'll just return a simulated URL
+        return Mono.just(basePublicUrl + key);
     }
 
     @Override
     public Mono<String> uploadContent(Flux<DataBuffer> content, String fileName, String contentType, String path) {
         String key = generateKey(path, fileName);
-        log.info("Uploading content to S3: {}", key);
+        log.info("Uploading content to S3 private bucket: {}", key);
         
-        // In a real implementation, this would use the AWS SDK to upload the content to S3
+        // In a real implementation, this would use the AWS SDK to upload the content to S3 private bucket
         // For now, we'll just return a simulated URL
-        return Mono.just(baseUrl + key);
+        return Mono.just(basePrivateUrl + key);
+    }
+
+    @Override
+    public Mono<String> uploadContentToPublicBucket(Flux<DataBuffer> content, String fileName, String contentType, String path) {
+        String key = generateKey(path, fileName);
+        log.info("Uploading content to S3 public bucket: {}", key);
+        
+        // In a real implementation, this would use the AWS SDK to upload the content to S3 public bucket
+        // For now, we'll just return a simulated URL
+        return Mono.just(basePublicUrl + key);
+    }
+
+    @Override
+    public Mono<String> moveFileFromPublicToPrivate(String publicFileUrl) {
+        String key = extractKeyFromUrl(publicFileUrl, true);
+        log.info("Moving file from public to private bucket: {}", key);
+        
+        // In a real implementation, this would:
+        // 1. Download the file from the public bucket
+        // 2. Upload it to the private bucket
+        // 3. Delete it from the public bucket
+        // 4. Return the new URL in the private bucket
+        
+        // Generate the new URL in the private bucket
+        String privateFileUrl = basePrivateUrl + key;
+        
+        // Return the private URL and then delete the file from the public bucket
+        return Mono.just(privateFileUrl)
+                .flatMap(url -> {
+                    // Delete the file from the public bucket
+                    log.info("Deleting file from public bucket after moving to private bucket: {}", key);
+                    return deleteFile(publicFileUrl)
+                            .then(Mono.just(url));
+                });
     }
 
     @Override
     public Flux<DataBuffer> downloadFile(String fileUrl) {
-        String key = extractKeyFromUrl(fileUrl);
-        log.info("Downloading file from S3: {}", key);
+        boolean isPublic = isPublicUrl(fileUrl);
+        String key = extractKeyFromUrl(fileUrl, isPublic);
+        log.info("Downloading file from S3 {} bucket: {}", isPublic ? "public" : "private", key);
         
-        // In a real implementation, this would use the AWS SDK to download the file from S3
+        // In a real implementation, this would use the AWS SDK to download the file from the appropriate S3 bucket
         // For now, we'll just return an empty Flux
         return Flux.empty();
     }
 
     @Override
     public Mono<Void> deleteFile(String fileUrl) {
-        String key = extractKeyFromUrl(fileUrl);
-        log.info("Deleting file from S3: {}", key);
+        boolean isPublic = isPublicUrl(fileUrl);
+        String key = extractKeyFromUrl(fileUrl, isPublic);
+        log.info("Deleting file from S3 {} bucket: {}", isPublic ? "public" : "private", key);
         
-        // In a real implementation, this would use the AWS SDK to delete the file from S3
+        // In a real implementation, this would use the AWS SDK to delete the file from the appropriate S3 bucket
         // For now, we'll just return a completed Mono
         return Mono.empty();
     }
 
     @Override
     public Mono<Boolean> fileExists(String fileUrl) {
-        String key = extractKeyFromUrl(fileUrl);
-        log.info("Checking if file exists in S3: {}", key);
+        boolean isPublic = isPublicUrl(fileUrl);
+        String key = extractKeyFromUrl(fileUrl, isPublic);
+        log.info("Checking if file exists in S3 {} bucket: {}", isPublic ? "public" : "private", key);
         
-        // In a real implementation, this would use the AWS SDK to check if the file exists in S3
+        // In a real implementation, this would use the AWS SDK to check if the file exists in the appropriate S3 bucket
         // For now, we'll just return true
         return Mono.just(true);
     }
 
     @Override
     public Mono<String> generatePresignedUrl(String fileUrl, long expirationInSeconds) {
-        String key = extractKeyFromUrl(fileUrl);
-        log.info("Generating pre-signed URL for S3 file: {}", key);
+        boolean isPublic = isPublicUrl(fileUrl);
+        String key = extractKeyFromUrl(fileUrl, isPublic);
+        log.info("Generating pre-signed URL for S3 {} bucket file: {}", isPublic ? "public" : "private", key);
         
-        // In a real implementation, this would use the AWS SDK to generate a pre-signed URL
+        // In a real implementation, this would use the AWS SDK to generate a pre-signed URL for the appropriate S3 bucket
         // For now, we'll just return the original URL
         return Mono.just(fileUrl);
     }
@@ -136,12 +193,23 @@ public class S3StorageProviderImpl implements FileStorageProvider {
     }
     
     /**
+     * Checks if a URL is for the public bucket.
+     *
+     * @param fileUrl the URL of the file
+     * @return true if the URL is for the public bucket, false otherwise
+     */
+    private boolean isPublicUrl(String fileUrl) {
+        return fileUrl.contains("/" + publicBucketName + "/");
+    }
+    
+    /**
      * Extracts the key from a file URL.
      *
      * @param fileUrl the URL of the file
+     * @param isPublic whether the URL is for the public bucket
      * @return the extracted key
      */
-    private String extractKeyFromUrl(String fileUrl) {
-        return fileUrl.replace(baseUrl, "");
+    private String extractKeyFromUrl(String fileUrl, boolean isPublic) {
+        return isPublic ? fileUrl.replace(basePublicUrl, "") : fileUrl.replace(basePrivateUrl, "");
     }
 }
