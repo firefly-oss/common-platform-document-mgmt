@@ -39,6 +39,15 @@ The module includes REST controllers for various resources:
 - **DocumentReferenceController**: Endpoints for document reference operations
 - **SignatureRequestController**: Endpoints for signature request operations
 - **SignatureProofController**: Endpoints for signature proof operations
+- **StorageController**: Endpoints for storage operations, including file uploads and downloads
+
+The StorageController provides endpoints for the two-bucket storage system:
+- `/api/v1/storage/upload`: Uploads a file directly to the private bucket (for internal use)
+- `/api/v1/storage/upload/public`: Uploads a file to the public bucket (for channel uploads)
+- `/api/v1/storage/move-to-private`: Moves a file from the public bucket to the private bucket
+- `/api/v1/storage/download`: Downloads a file from either bucket
+- `/api/v1/storage/exists`: Checks if a file exists in either bucket
+- `/api/v1/storage/presigned-url`: Generates a pre-signed URL for temporary access to a file
 
 Example of a controller:
 
@@ -205,7 +214,8 @@ storage:
     region: us-east-1
     access-key: your-access-key
     secret-key: your-secret-key
-    bucket-name: your-bucket-name
+    private-bucket-name: your-private-bucket-name
+    public-bucket-name: your-public-bucket-name
 
 esignature:
   default-provider: Logalty

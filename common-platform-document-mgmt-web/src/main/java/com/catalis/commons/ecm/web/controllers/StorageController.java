@@ -35,7 +35,7 @@ public class StorageController {
 
     private final StorageService storageService;
 
-    @Operation(summary = "Upload file", description = "Uploads a file to the storage provider")
+    @Operation(summary = "Upload file", description = "Uploads a file to the private storage bucket")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "File uploaded successfully",
                     content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
@@ -57,6 +57,52 @@ public class StorageController {
                 storageService.uploadFile(filePart, path);
         
         return result.map(fileUrl -> ResponseEntity.created(URI.create(fileUrl)).body(fileUrl));
+    }
+    
+    @Operation(summary = "Upload file to public bucket", description = "Uploads a file to the public storage bucket for channel uploads")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "File uploaded successfully",
+                    content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid file or path"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PostMapping(value = "/upload/public", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<ResponseEntity<String>> uploadFileToPublicBucket(
+            @Parameter(description = "File to upload", required = true)
+            @RequestPart("file") FilePart filePart,
+            @Parameter(description = "Path where the file should be stored", required = true)
+            @RequestParam("path") String path,
+            @Parameter(description = "Storage provider name (optional)")
+            @RequestParam(required = false) String provider) {
+        
+        Mono<String> result = provider != null ?
+                storageService.uploadFileToPublicBucket(filePart, path, provider) :
+                storageService.uploadFileToPublicBucket(filePart, path);
+        
+        return result.map(fileUrl -> ResponseEntity.created(URI.create(fileUrl)).body(fileUrl));
+    }
+    
+    @Operation(summary = "Move file from public to private bucket", description = "Moves a file from the public bucket to the private bucket")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "File moved successfully",
+                    content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid file URL"),
+            @ApiResponse(responseCode = "404", description = "File not found"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PostMapping(value = "/move-to-private", produces = MediaType.TEXT_PLAIN_VALUE)
+    public Mono<ResponseEntity<String>> moveFileFromPublicToPrivate(
+            @Parameter(description = "URL of the file in the public bucket", required = true)
+            @RequestParam("url") String publicFileUrl,
+            @Parameter(description = "Storage provider name (optional)")
+            @RequestParam(required = false) String provider) {
+        
+        Mono<String> result = provider != null ?
+                storageService.moveFileFromPublicToPrivate(publicFileUrl, provider) :
+                storageService.moveFileFromPublicToPrivate(publicFileUrl);
+        
+        return result.map(ResponseEntity::ok);
     }
 
     @Operation(summary = "Download file", description = "Downloads a file from the storage provider")
