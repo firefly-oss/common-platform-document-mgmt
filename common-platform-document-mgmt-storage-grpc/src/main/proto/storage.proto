@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.catalis.commons.ecm.storage.grpc";
+option java_outer_classname = "StorageProto";
+
+package storage;
+
+// The Storage service definition
+service StorageService {
+  // Upload a file
+  rpc UploadFile (stream FileUploadRequest) returns (FileUploadResponse);
+  
+  // Download a file
+  rpc DownloadFile (FileDownloadRequest) returns (stream FileDownloadResponse);
+  
+  // Delete a file
+  rpc DeleteFile (FileDeleteRequest) returns (FileDeleteResponse);
+  
+  // Check if a file exists
+  rpc FileExists (FileExistsRequest) returns (FileExistsResponse);
+  
+  // Generate a pre-signed URL for temporary access to a file
+  rpc GeneratePresignedUrl (PresignedUrlRequest) returns (PresignedUrlResponse);
+}
+
+// Request message for uploading a file
+message FileUploadRequest {
+  oneof data {
+    // Metadata for the file (sent in the first message)
+    FileMetadata metadata = 1;
+    // Chunk of file content (sent in subsequent messages)
+    bytes chunk = 2;
+  }
+}
+
+// Metadata for a file upload
+message FileMetadata {
+  string file_name = 1;
+  string content_type = 2;
+  string path = 3;
+  string provider_name = 4; // Optional, uses default if not provided
+}
+
+// Response message for file upload
+message FileUploadResponse {
+  string file_url = 1;
+}
+
+// Request message for downloading a file
+message FileDownloadRequest {
+  string file_url = 1;
+  string provider_name = 2; // Optional, uses default if not provided
+}
+
+// Response message for file download
+message FileDownloadResponse {
+  oneof data {
+    // Metadata for the file (sent in the first message)
+    FileMetadata metadata = 1;
+    // Chunk of file content (sent in subsequent messages)
+    bytes chunk = 2;
+  }
+}
+
+// Request message for deleting a file
+message FileDeleteRequest {
+  string file_url = 1;
+  string provider_name = 2; // Optional, uses default if not provided
+}
+
+// Response message for file deletion
+message FileDeleteResponse {
+  bool success = 1;
+}
+
+// Request message for checking if a file exists
+message FileExistsRequest {
+  string file_url = 1;
+  string provider_name = 2; // Optional, uses default if not provided
+}
+
+// Response message for file existence check
+message FileExistsResponse {
+  bool exists = 1;
+}
+
+// Request message for generating a pre-signed URL
+message PresignedUrlRequest {
+  string file_url = 1;
+  int64 expiration_in_seconds = 2;
+  string provider_name = 3; // Optional, uses default if not provided
+}
+
+// Response message for pre-signed URL generation
+message PresignedUrlResponse {
+  string presigned_url = 1;
+}
