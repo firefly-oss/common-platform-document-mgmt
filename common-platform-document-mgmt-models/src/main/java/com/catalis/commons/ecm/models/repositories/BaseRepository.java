@@ -1,4 +1,4 @@
-package com.catalis.core.lending.origination.models.repositories;
+package com.catalis.commons.ecm.models.repositories;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.NoRepositoryBean;
