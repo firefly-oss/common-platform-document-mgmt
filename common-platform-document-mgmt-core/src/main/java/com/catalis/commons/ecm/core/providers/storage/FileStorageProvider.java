@@ -21,6 +21,16 @@ public interface FileStorageProvider {
     Mono<String> uploadFile(FilePart filePart, String path);
     
     /**
+     * Uploads a file to the public bucket of the storage service.
+     * Files in the public bucket are intended for temporary storage before being moved to the private bucket.
+     *
+     * @param filePart the file part containing the file data
+     * @param path the path where the file should be stored (can include subdirectories)
+     * @return a Mono emitting the URL where the file can be accessed
+     */
+    Mono<String> uploadFileToPublicBucket(FilePart filePart, String path);
+    
+    /**
      * Uploads file content to the storage service.
      *
      * @param content the file content as a Flux of DataBuffer
@@ -30,6 +40,26 @@ public interface FileStorageProvider {
      * @return a Mono emitting the URL where the file can be accessed
      */
     Mono<String> uploadContent(Flux<DataBuffer> content, String fileName, String contentType, String path);
+    
+    /**
+     * Uploads file content to the public bucket of the storage service.
+     * Files in the public bucket are intended for temporary storage before being moved to the private bucket.
+     *
+     * @param content the file content as a Flux of DataBuffer
+     * @param fileName the name of the file
+     * @param contentType the content type of the file
+     * @param path the path where the file should be stored (can include subdirectories)
+     * @return a Mono emitting the URL where the file can be accessed
+     */
+    Mono<String> uploadContentToPublicBucket(Flux<DataBuffer> content, String fileName, String contentType, String path);
+    
+    /**
+     * Moves a file from the public bucket to the private bucket.
+     *
+     * @param publicFileUrl the URL of the file in the public bucket
+     * @return a Mono emitting the URL of the file in the private bucket
+     */
+    Mono<String> moveFileFromPublicToPrivate(String publicFileUrl);
     
     /**
      * Downloads a file from the storage service.

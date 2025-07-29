@@ -40,6 +40,24 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
+    public Mono<String> uploadFileToPublicBucket(FilePart filePart, String path, String providerName) {
+        log.info("Uploading file {} to public bucket at path {} with provider: {}", 
+                filePart.filename(), path, providerName);
+        
+        return providerRegistry.getProvider(providerName)
+                .uploadFileToPublicBucket(filePart, path);
+    }
+
+    @Override
+    public Mono<String> uploadFileToPublicBucket(FilePart filePart, String path) {
+        log.info("Uploading file {} to public bucket at path {} with default provider", 
+                filePart.filename(), path);
+        
+        return providerRegistry.getDefaultProvider()
+                .uploadFileToPublicBucket(filePart, path);
+    }
+
+    @Override
     public Mono<String> uploadContent(Flux<DataBuffer> content, String fileName, String contentType, String path, String providerName) {
         log.info("Uploading content as {} to path {} with provider: {}", fileName, path, providerName);
         
@@ -53,6 +71,42 @@ public class StorageServiceImpl implements StorageService {
         
         return providerRegistry.getDefaultProvider()
                 .uploadContent(content, fileName, contentType, path);
+    }
+
+    @Override
+    public Mono<String> uploadContentToPublicBucket(Flux<DataBuffer> content, String fileName, String contentType, String path, String providerName) {
+        log.info("Uploading content as {} to public bucket at path {} with provider: {}", 
+                fileName, path, providerName);
+        
+        return providerRegistry.getProvider(providerName)
+                .uploadContentToPublicBucket(content, fileName, contentType, path);
+    }
+
+    @Override
+    public Mono<String> uploadContentToPublicBucket(Flux<DataBuffer> content, String fileName, String contentType, String path) {
+        log.info("Uploading content as {} to public bucket at path {} with default provider", 
+                fileName, path);
+        
+        return providerRegistry.getDefaultProvider()
+                .uploadContentToPublicBucket(content, fileName, contentType, path);
+    }
+
+    @Override
+    public Mono<String> moveFileFromPublicToPrivate(String publicFileUrl, String providerName) {
+        log.info("Moving file from public to private bucket with URL: {} using provider: {}", 
+                publicFileUrl, providerName);
+        
+        return providerRegistry.getProvider(providerName)
+                .moveFileFromPublicToPrivate(publicFileUrl);
+    }
+
+    @Override
+    public Mono<String> moveFileFromPublicToPrivate(String publicFileUrl) {
+        log.info("Moving file from public to private bucket with URL: {} using default provider", 
+                publicFileUrl);
+        
+        return providerRegistry.getDefaultProvider()
+                .moveFileFromPublicToPrivate(publicFileUrl);
     }
 
     @Override
