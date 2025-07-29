@@ -126,7 +126,10 @@ The application supports multiple storage providers through the `FileStorageProv
 ```java
 public interface FileStorageProvider {
     Mono<String> uploadFile(FilePart filePart, String path);
+    Mono<String> uploadFileToPublicBucket(FilePart filePart, String path);
     Mono<String> uploadContent(Flux<DataBuffer> content, String fileName, String contentType, String path);
+    Mono<String> uploadContentToPublicBucket(Flux<DataBuffer> content, String fileName, String contentType, String path);
+    Mono<String> moveFileFromPublicToPrivate(String publicFileUrl);
     Flux<DataBuffer> downloadFile(String fileUrl);
     Mono<Void> deleteFile(String fileUrl);
     Mono<Boolean> fileExists(String fileUrl);
@@ -140,6 +143,22 @@ The `FileStorageProviderRegistry` manages the available storage providers and al
 Currently, the application includes the following storage provider implementations:
 - **S3StorageProviderImpl**: Stores files in Amazon S3
 - **GrpcStorageServiceImpl**: Exposes storage operations over gRPC for remote clients
+
+#### Two-Bucket Storage System
+
+The application implements a two-bucket storage system to optimize file uploads and improve security:
+
+1. **Private Bucket**: The main storage bucket for all documents. This bucket is not directly accessible from outside the system.
+2. **Public Bucket**: A temporary storage bucket for files uploaded from external channels. Files in this bucket are moved to the private bucket after validation.
+
+This approach provides several benefits:
+- **Reduced Network Traffic**: Files uploaded from external channels don't need to pass through multiple network layers.
+- **Improved Security**: The private bucket is not directly accessible from outside the system.
+- **Better User Experience**: Direct uploads to the public bucket are faster and more reliable.
+
+The workflow for file uploads depends on the source:
+- **Internal Uploads**: Files uploaded from internal systems go directly to the private bucket.
+- **Channel Uploads**: Files uploaded from external channels go to the public bucket first, then are moved to the private bucket after validation.
 
 ### E-Signature Providers
 
@@ -164,13 +183,25 @@ Currently, the application includes the following e-signature provider implement
 ### gRPC Implementation
 
 The application includes a gRPC service for storage operations, which allows remote clients to:
-- Upload files
+- Upload files (directly to private bucket for internal use)
+- Upload files from channel (to public bucket)
+- Move files from public to private bucket
 - Download files
 - Delete files
 - Check if files exist
 - Generate pre-signed URLs
 
 The gRPC service is implemented in the `common-platform-document-mgmt-storage-grpc` module and uses the core `StorageService` to perform the actual storage operations. This allows the gRPC service to leverage the same storage provider infrastructure as the rest of the application.
+
+#### Channel Upload Workflow
+
+The gRPC service supports a special workflow for channel uploads:
+
+1. External clients upload files using the `UploadFileFromChannel` gRPC method
+2. Files are stored in the public bucket
+3. After validation, files can be moved to the private bucket using the `MoveFileFromPublicToPrivate` gRPC method
+
+This workflow reduces network traffic by avoiding the need to pass binary data through multiple network layers, resulting in better performance and user experience.
 
 ## Entity Relationship Diagram
 
