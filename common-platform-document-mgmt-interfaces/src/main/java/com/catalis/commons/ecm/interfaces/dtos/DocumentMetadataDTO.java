@@ -1,5 +1,6 @@
 package com.catalis.commons.ecm.interfaces.dtos;
 
+import com.catalis.annotations.ValidDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -48,14 +49,14 @@ public class DocumentMetadataDTO {
     private String tenantId;
 
     @Schema(description = "Date and time when this metadata was created")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Schema(description = "User who created this metadata")
     private String createdBy;
 
     @Schema(description = "Date and time when this metadata was last updated")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
     @Schema(description = "User who last updated this metadata")

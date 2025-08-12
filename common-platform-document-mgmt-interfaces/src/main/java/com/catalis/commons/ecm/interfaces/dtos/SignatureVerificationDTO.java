@@ -1,5 +1,6 @@
 package com.catalis.commons.ecm.interfaces.dtos;
 
+import com.catalis.annotations.ValidDateTime;
 import com.catalis.commons.ecm.interfaces.enums.VerificationStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -41,6 +42,7 @@ public class SignatureVerificationDTO {
 
     @Schema(description = "Timestamp of the verification")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime
     private LocalDateTime verificationTimestamp;
 
     @Schema(description = "Indicates if the certificate is valid")
@@ -57,6 +59,7 @@ public class SignatureVerificationDTO {
 
     @Schema(description = "Date and time from which the certificate is valid")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime
     private LocalDateTime certificateValidFrom;
 
     @Schema(description = "Date and time until which the certificate is valid")
@@ -70,8 +73,8 @@ public class SignatureVerificationDTO {
     private String tenantId;
 
     @Schema(description = "Date and time when the signature verification was created")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Schema(description = "User who created the signature verification")
@@ -79,8 +82,8 @@ public class SignatureVerificationDTO {
     private String createdBy;
 
     @Schema(description = "Date and time when the signature verification was last updated")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
     @Schema(description = "User who last updated the signature verification")

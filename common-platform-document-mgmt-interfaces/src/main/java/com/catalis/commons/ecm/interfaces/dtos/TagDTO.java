@@ -1,5 +1,6 @@
 package com.catalis.commons.ecm.interfaces.dtos;
 
+import com.catalis.annotations.ValidDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,14 +41,14 @@ public class TagDTO {
     private String tenantId;
 
     @Schema(description = "Date and time when the tag was created")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Schema(description = "User who created the tag")
     private String createdBy;
 
     @Schema(description = "Date and time when the tag was last updated")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
     @Schema(description = "User who last updated the tag")

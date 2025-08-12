@@ -1,5 +1,6 @@
 package com.catalis.commons.ecm.interfaces.dtos;
 
+import com.catalis.annotations.ValidDateTime;
 import com.catalis.commons.ecm.interfaces.enums.SignatureStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -43,30 +44,30 @@ public class SignatureRequestDTO {
     private Boolean notificationSent;
 
     @Schema(description = "Date and time when the notification was sent")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime notificationSentAt;
 
     @Schema(description = "Indicates if a reminder has been sent to the signer")
     private Boolean reminderSent;
 
     @Schema(description = "Date and time when the reminder was sent")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime reminderSentAt;
 
     @Schema(description = "Date and time when the signature request expires")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime expirationDate;
 
     @Schema(description = "Date and time when the signature request was completed")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime completedAt;
 
     @Schema(description = "Tenant ID for multi-tenancy support")
     private String tenantId;
 
     @Schema(description = "Date and time when the signature request was created")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Schema(description = "User who created the signature request")
@@ -74,8 +75,8 @@ public class SignatureRequestDTO {
     private String createdBy;
 
     @Schema(description = "Date and time when the signature request was last updated")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
     @Schema(description = "User who last updated the signature request")

@@ -1,5 +1,7 @@
 package com.catalis.commons.ecm.interfaces.dtos;
 
+import com.catalis.annotations.ValidDateTime;
+import com.catalis.annotations.ValidPhoneNumber;
 import com.catalis.commons.ecm.interfaces.enums.SignatureFormat;
 import com.catalis.commons.ecm.interfaces.enums.SignatureStatus;
 import com.catalis.commons.ecm.interfaces.enums.SignatureType;
@@ -7,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -45,6 +48,7 @@ public class DocumentSignatureDTO {
     private String signerName;
 
     @Schema(description = "Email of the signer")
+    @Email
     private String signerEmail;
 
     @Schema(description = "Type of signature")
@@ -87,19 +91,19 @@ public class DocumentSignatureDTO {
     private String signatureContactInfo;
 
     @Schema(description = "Date and time when the signature expires")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime expirationDate;
 
     @Schema(description = "Date and time when the document was signed")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime signedAt;
 
     @Schema(description = "Tenant ID for multi-tenancy support")
     private String tenantId;
 
     @Schema(description = "Date and time when the document signature was created")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Schema(description = "User who created the document signature")
@@ -107,8 +111,8 @@ public class DocumentSignatureDTO {
     private String createdBy;
 
     @Schema(description = "Date and time when the document signature was last updated")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
     @Schema(description = "User who last updated the document signature")

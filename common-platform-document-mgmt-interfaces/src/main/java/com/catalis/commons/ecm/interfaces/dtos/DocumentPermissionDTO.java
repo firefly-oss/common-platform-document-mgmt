@@ -1,5 +1,6 @@
 package com.catalis.commons.ecm.interfaces.dtos;
 
+import com.catalis.annotations.ValidDateTime;
 import com.catalis.commons.ecm.interfaces.enums.PermissionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -38,21 +39,21 @@ public class DocumentPermissionDTO {
     private Boolean isGranted;
 
     @Schema(description = "Date and time when the permission expires")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime expirationDate;
 
     @Schema(description = "Tenant ID for multi-tenancy support")
     private String tenantId;
 
     @Schema(description = "Date and time when the permission was created")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Schema(description = "User who created the permission")
     private String createdBy;
 
     @Schema(description = "Date and time when the permission was last updated")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @ValidDateTime(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
     @Schema(description = "User who last updated the permission")
