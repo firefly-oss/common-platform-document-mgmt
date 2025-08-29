@@ -876,8 +876,8 @@ firefly:
     auto-start-plugins: true
     plugins-directory: /path/to/plugins
     classpath-scan-packages:
-      - com.catalis.plugins
-      - com.catalis.commons.ecm.core.extensions.plugins
+      - com.firefly.plugins
+      - com.firefly.commons.ecm.core.extensions.plugins
 ```
 
 ### Environment Variables
