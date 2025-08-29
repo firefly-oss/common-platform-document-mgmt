@@ -36,7 +36,7 @@ cmis:
     id: ecm-repository
     name: ECM Repository
     description: Enterprise Content Management Repository
-    vendor-name: Catalis
+    vendor-name: Firefly
     product-name: Enterprise Content Management
     product-version: 1.0.0
     cmis-version: 1.1

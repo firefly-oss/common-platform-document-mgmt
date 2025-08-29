@@ -30,9 +30,10 @@ spring:
       enabled: true
 
 server:
-  port: 8082
+  port: ${SERVER_PORT:8080}
   shutdown: graceful
 
+  address: ${SERVER_ADDRESS:localhost}
 springdoc:
   api-docs:
     enabled: true
