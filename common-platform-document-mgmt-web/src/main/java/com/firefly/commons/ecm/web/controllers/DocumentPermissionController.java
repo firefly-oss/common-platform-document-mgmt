@@ -16,7 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Document Permission resources.
  */
@@ -36,7 +36,7 @@ public class DocumentPermissionController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<PaginationResponse<DocumentPermissionDTO>> listDocumentPermissions(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Filter request for document permissions") @ParameterObject @ModelAttribute FilterRequest<DocumentPermissionDTO> filterRequest) {
         return documentPermissionService.filter(filterRequest != null ? filterRequest : new FilterRequest<>());
     }
@@ -49,8 +49,8 @@ public class DocumentPermissionController {
             @ApiResponse(responseCode = "404", description = "Document permission not found")
     })
     public Mono<DocumentPermissionDTO> getDocumentPermission(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
-            @Parameter(description = "ID of the permission to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "ID of the permission to retrieve") @PathVariable UUID id) {
         return documentPermissionService.getById(id)
                 .filter(permission -> permission.getDocumentId().equals(documentId));
     }
@@ -65,7 +65,7 @@ public class DocumentPermissionController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<DocumentPermissionDTO> addDocumentPermission(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Document permission data to create") @RequestBody DocumentPermissionDTO permissionDTO) {
         permissionDTO.setDocumentId(documentId);
         return documentPermissionService.create(permissionDTO);
@@ -80,8 +80,8 @@ public class DocumentPermissionController {
             @ApiResponse(responseCode = "404", description = "Document permission not found")
     })
     public Mono<DocumentPermissionDTO> updateDocumentPermission(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
-            @Parameter(description = "ID of the permission to update") @PathVariable Long id,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "ID of the permission to update") @PathVariable UUID id,
             @Parameter(description = "Updated document permission data") @RequestBody DocumentPermissionDTO permissionDTO) {
         permissionDTO.setId(id);
         permissionDTO.setDocumentId(documentId);
@@ -96,8 +96,8 @@ public class DocumentPermissionController {
             @ApiResponse(responseCode = "404", description = "Document permission not found")
     })
     public Mono<Void> deleteDocumentPermission(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
-            @Parameter(description = "ID of the permission to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "ID of the permission to delete") @PathVariable UUID id) {
         return documentPermissionService.getById(id)
                 .filter(permission -> permission.getDocumentId().equals(documentId))
                 .flatMap(permission -> documentPermissionService.delete(id));

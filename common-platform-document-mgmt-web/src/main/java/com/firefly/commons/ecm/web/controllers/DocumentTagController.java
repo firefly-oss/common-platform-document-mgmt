@@ -16,7 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Document Tag resources.
  */
@@ -36,7 +36,7 @@ public class DocumentTagController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<PaginationResponse<DocumentTagDTO>> listDocumentTags(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Filter request for document tags") @ParameterObject @ModelAttribute FilterRequest<DocumentTagDTO> filterRequest) {
         return documentTagService.filter(filterRequest != null ? filterRequest : new FilterRequest<>());
     }
@@ -51,7 +51,7 @@ public class DocumentTagController {
             @ApiResponse(responseCode = "404", description = "Document or tag not found")
     })
     public Mono<DocumentTagDTO> addTagToDocument(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Document tag data to create") @RequestBody DocumentTagDTO documentTagDTO) {
         documentTagDTO.setDocumentId(documentId);
         return documentTagService.create(documentTagDTO);
@@ -65,8 +65,8 @@ public class DocumentTagController {
             @ApiResponse(responseCode = "404", description = "Document tag association not found")
     })
     public Mono<Void> removeTagFromDocument(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
-            @Parameter(description = "ID of the tag to remove") @PathVariable Long tagId) {
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "ID of the tag to remove") @PathVariable UUID tagId) {
         // This is a simplified implementation. In a real-world scenario, you would need to
         // query the service to find the document-tag association by document ID and tag ID, then delete it.
         return documentTagService.filter(new FilterRequest<>())

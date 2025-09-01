@@ -14,9 +14,9 @@ import org.springframework.web.reactive.config.EnableWebFlux;
 
 @SpringBootApplication(
         scanBasePackages = {
-                "com.firefly.core.plugin",
+                "com.firefly.core.ecm",      // Scan lib-ecm-core components including EcmPortProvider
                 "com.firefly.commons.ecm",
-                "com.firefly.common.web"  // Scan common web library configurations
+                "com.firefly.common.web"     // Scan common web library configurations
         }
 )
 @EnableWebFlux
@@ -37,8 +37,8 @@ import org.springframework.web.reactive.config.EnableWebFlux;
         ),
         servers = {
                 @Server(
-                        url = "http://core.catalis.vc/ecm",
-                        description = "Development Environment"
+                        url = "https://api.getfirefly.io/ecm",
+                        description = "Production Environment"
                 ),
                 @Server(
                         url = "/",

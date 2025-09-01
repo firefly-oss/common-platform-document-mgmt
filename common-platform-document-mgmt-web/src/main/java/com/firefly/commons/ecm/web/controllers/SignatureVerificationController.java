@@ -16,7 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Signature Verification resources.
  */
@@ -47,7 +47,7 @@ public class SignatureVerificationController {
             @ApiResponse(responseCode = "404", description = "Signature verification not found")
     })
     public Mono<SignatureVerificationDTO> getSignatureVerificationById(
-            @Parameter(description = "ID of the signature verification to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature verification to retrieve") @PathVariable UUID id) {
         return signatureVerificationService.getById(id);
     }
 
@@ -73,7 +73,7 @@ public class SignatureVerificationController {
             @ApiResponse(responseCode = "404", description = "Signature verification not found")
     })
     public Mono<SignatureVerificationDTO> updateSignatureVerification(
-            @Parameter(description = "ID of the signature verification to update") @PathVariable Long id,
+            @Parameter(description = "ID of the signature verification to update") @PathVariable UUID id,
             @Parameter(description = "Updated signature verification data") @RequestBody SignatureVerificationDTO verificationDTO) {
         verificationDTO.setId(id);
         return signatureVerificationService.update(verificationDTO);
@@ -87,7 +87,7 @@ public class SignatureVerificationController {
             @ApiResponse(responseCode = "404", description = "Signature verification not found")
     })
     public Mono<Void> deleteSignatureVerification(
-            @Parameter(description = "ID of the signature verification to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature verification to delete") @PathVariable UUID id) {
         return signatureVerificationService.delete(id);
     }
 
@@ -100,7 +100,7 @@ public class SignatureVerificationController {
             @ApiResponse(responseCode = "404", description = "Document signature not found")
     })
     public Mono<SignatureVerificationDTO> verifyDocumentSignature(
-            @Parameter(description = "ID of the document signature to verify") @RequestParam Long documentSignatureId) {
+            @Parameter(description = "ID of the document signature to verify") @RequestParam UUID documentSignatureId) {
         return signatureVerificationService.verifySignature(documentSignatureId);
     }
 }

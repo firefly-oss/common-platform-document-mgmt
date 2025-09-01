@@ -16,7 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Signature Request resources.
  */
@@ -47,7 +47,7 @@ public class SignatureRequestController {
             @ApiResponse(responseCode = "404", description = "Signature request not found")
     })
     public Mono<SignatureRequestDTO> getSignatureRequestById(
-            @Parameter(description = "ID of the signature request to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature request to retrieve") @PathVariable UUID id) {
         return signatureRequestService.getById(id);
     }
 
@@ -73,7 +73,7 @@ public class SignatureRequestController {
             @ApiResponse(responseCode = "404", description = "Signature request not found")
     })
     public Mono<SignatureRequestDTO> updateSignatureRequest(
-            @Parameter(description = "ID of the signature request to update") @PathVariable Long id,
+            @Parameter(description = "ID of the signature request to update") @PathVariable UUID id,
             @Parameter(description = "Updated signature request data") @RequestBody SignatureRequestDTO requestDTO) {
         requestDTO.setId(id);
         return signatureRequestService.update(requestDTO);
@@ -87,7 +87,7 @@ public class SignatureRequestController {
             @ApiResponse(responseCode = "404", description = "Signature request not found")
     })
     public Mono<Void> deleteSignatureRequest(
-            @Parameter(description = "ID of the signature request to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature request to delete") @PathVariable UUID id) {
         return signatureRequestService.delete(id);
     }
 
@@ -99,7 +99,7 @@ public class SignatureRequestController {
             @ApiResponse(responseCode = "404", description = "Signature request not found")
     })
     public Mono<SignatureRequestDTO> sendSignatureRequest(
-            @Parameter(description = "ID of the signature request to send") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature request to send") @PathVariable UUID id) {
         return signatureRequestService.sendNotification(id);
     }
 
@@ -111,7 +111,7 @@ public class SignatureRequestController {
             @ApiResponse(responseCode = "404", description = "Signature request not found")
     })
     public Mono<SignatureRequestDTO> sendSignatureRequestReminder(
-            @Parameter(description = "ID of the signature request to remind") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature request to remind") @PathVariable UUID id) {
         return signatureRequestService.sendReminder(id);
     }
 }

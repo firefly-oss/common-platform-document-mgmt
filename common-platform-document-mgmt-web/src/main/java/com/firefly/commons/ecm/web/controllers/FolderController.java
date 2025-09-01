@@ -18,7 +18,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Folder resources.
  */
@@ -50,7 +50,7 @@ public class FolderController {
             @ApiResponse(responseCode = "404", description = "Folder not found")
     })
     public Mono<FolderDTO> getFolderById(
-            @Parameter(description = "ID of the folder to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the folder to retrieve") @PathVariable UUID id) {
         return folderService.getById(id);
     }
 
@@ -62,7 +62,7 @@ public class FolderController {
             @ApiResponse(responseCode = "404", description = "Folder not found")
     })
     public Mono<PaginationResponse<DocumentDTO>> listDocumentsInFolder(
-            @Parameter(description = "ID of the folder") @PathVariable Long id,
+            @Parameter(description = "ID of the folder") @PathVariable UUID id,
             @Parameter(description = "Filter request for documents") @ParameterObject @ModelAttribute FilterRequest<DocumentDTO> filterRequest) {
 
         FilterRequest<DocumentDTO> request = filterRequest != null ? filterRequest : new FilterRequest<>();
@@ -94,7 +94,7 @@ public class FolderController {
             @ApiResponse(responseCode = "404", description = "Folder not found")
     })
     public Mono<FolderDTO> updateFolder(
-            @Parameter(description = "ID of the folder to update") @PathVariable Long id,
+            @Parameter(description = "ID of the folder to update") @PathVariable UUID id,
             @Parameter(description = "Updated folder data") @RequestBody FolderDTO folderDTO) {
         folderDTO.setId(id);
         return folderService.update(folderDTO);
@@ -108,7 +108,7 @@ public class FolderController {
             @ApiResponse(responseCode = "404", description = "Folder not found")
     })
     public Mono<Void> deleteFolder(
-            @Parameter(description = "ID of the folder to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the folder to delete") @PathVariable UUID id) {
         return folderService.delete(id);
     }
 }

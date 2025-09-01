@@ -30,10 +30,10 @@ spring:
       enabled: true
 
 server:
+  address: ${SERVER_ADDRESS:localhost}
   port: ${SERVER_PORT:8080}
   shutdown: graceful
 
-  address: ${SERVER_ADDRESS:localhost}
 springdoc:
   api-docs:
     enabled: true
@@ -68,52 +68,52 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 firefly:
-  plugin-manager:
-    scan-on-startup: true
-    auto-start-plugins: true
-    plugins-directory: disabled
-    classpath-scan-packages:
-      - com.firefly.plugins
-      - com.firefly.commons.ecm.core.extensions.plugins
-    allowed-packages:
-      - com.firefly.commons.ecm.interfaces
-      - com.firefly.core.plugin.api
-      - com.firefly.plugin
-    event-bus:
-      type: in-memory
-      distributed-events: false
-      log-event-payloads: true
-    lifecycle-events-enabled: true
-    security:
-      enforce-security-checks: true
-      require-signature: false
-      enforce-resource-limits: false
+  # ECM Integration Configuration - Microservice-specific business logic defaults
+  # These properties provide default values for business logic when not specified in API requests
+  # Separate from lib-ecm-core provider configuration (firefly.ecm.document-content, firefly.ecm.signature)
+  ecm:
+    integration:
+      signature:
+        custom-message: "Please review and sign this document"
+        language: "en"
+        time-zone: "UTC"
+        signer-role: "Signer"
+        signing-order: 1
+        signature-required: true
+        authentication-method: "EMAIL"
+        expiration-days: 30
+        send-reminders: true
+        reminder-interval-days: 7
+      document:
+        security-level: "INTERNAL"
+        document-type: "DOCUMENT"
+        retention-days: 2555
+      error-handling:
+        fail-fast: false
+        log-failures: true
+        include-detailed-errors: false
+        send-error-notifications: false
 
-# CMIS Configuration
-cmis:
-  repository:
-    id: ecm-repository
-    name: ECM Repository
-    description: Enterprise Content Management Repository
-    vendor-name: Firefly
-    product-name: Enterprise Content Management
-    product-version: 1.0.0
-    cmis-version: 1.1
-  capabilities:
-    content-stream-updatability: true
-    changes-capability: true
-    renditions-capability: false
-    get-descendants-supported: true
-    get-folder-tree-supported: true
-    multifiling-supported: false
-    unfiling-supported: false
-    version-specific-filing-supported: false
-    pwc-updatable-supported: true
-    pwc-searchable-supported: true
-    all-versions-searchable-supported: true
-    query-supported: true
-    join-supported: false
-    acl-supported: true
+    # ECM Provider Configuration (lib-ecm-core)
+    # These settings configure the actual ECM providers (S3, DocuSign, etc.)
+    # Uncomment and configure as needed for your environment
+    #
+    # document-content:
+    #   provider: s3
+    #   s3:
+    #     bucket: firefly-documents
+    #     region: us-east-1
+    #     access-key: ${AWS_ACCESS_KEY}
+    #     secret-key: ${AWS_SECRET_KEY}
+    #
+    # signature:
+    #   provider: docusign
+    #   docusign:
+    #     integration-key: ${DOCUSIGN_INTEGRATION_KEY}
+    #     user-id: ${DOCUSIGN_USER_ID}
+    #     account-id: ${DOCUSIGN_ACCOUNT_ID}
+    #     base-path: https://demo.docusign.net/restapi
+
 
 ---
 spring:

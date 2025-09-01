@@ -16,7 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Signature Provider resources.
  */
@@ -47,7 +47,7 @@ public class SignatureProviderController {
             @ApiResponse(responseCode = "404", description = "Signature provider not found")
     })
     public Mono<SignatureProviderDTO> getSignatureProviderById(
-            @Parameter(description = "ID of the signature provider to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature provider to retrieve") @PathVariable UUID id) {
         return signatureProviderService.getById(id);
     }
 
@@ -73,7 +73,7 @@ public class SignatureProviderController {
             @ApiResponse(responseCode = "404", description = "Signature provider not found")
     })
     public Mono<SignatureProviderDTO> updateSignatureProvider(
-            @Parameter(description = "ID of the signature provider to update") @PathVariable Long id,
+            @Parameter(description = "ID of the signature provider to update") @PathVariable UUID id,
             @Parameter(description = "Updated signature provider data") @RequestBody SignatureProviderDTO providerDTO) {
         providerDTO.setId(id);
         return signatureProviderService.update(providerDTO);
@@ -87,7 +87,7 @@ public class SignatureProviderController {
             @ApiResponse(responseCode = "404", description = "Signature provider not found")
     })
     public Mono<Void> deleteSignatureProvider(
-            @Parameter(description = "ID of the signature provider to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the signature provider to delete") @PathVariable UUID id) {
         return signatureProviderService.delete(id);
     }
 
@@ -99,7 +99,7 @@ public class SignatureProviderController {
             @ApiResponse(responseCode = "404", description = "Signature provider not found")
     })
     public Mono<SignatureProviderDTO> setAsDefaultProvider(
-            @Parameter(description = "ID of the signature provider to set as default") @PathVariable Long id,
+            @Parameter(description = "ID of the signature provider to set as default") @PathVariable UUID id,
             @Parameter(description = "Tenant ID") @RequestParam(required = false) String tenantId) {
         return signatureProviderService.setAsDefault(id, tenantId);
     }

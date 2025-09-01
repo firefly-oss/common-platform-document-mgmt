@@ -18,7 +18,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Tag resources.
  */
@@ -50,7 +50,7 @@ public class TagController {
             @ApiResponse(responseCode = "404", description = "Tag not found")
     })
     public Mono<TagDTO> getTagById(
-            @Parameter(description = "ID of the tag to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the tag to retrieve") @PathVariable UUID id) {
         return tagService.getById(id);
     }
 
@@ -62,7 +62,7 @@ public class TagController {
             @ApiResponse(responseCode = "404", description = "Tag not found")
     })
     public Mono<PaginationResponse<DocumentDTO>> listDocumentsWithTag(
-            @Parameter(description = "ID of the tag") @PathVariable Long id,
+            @Parameter(description = "ID of the tag") @PathVariable UUID id,
             @Parameter(description = "Filter request for documents") @ParameterObject @ModelAttribute FilterRequest<DocumentDTO> filterRequest) {
 
         FilterRequest<DocumentDTO> request = filterRequest != null ? filterRequest : new FilterRequest<>();
@@ -94,7 +94,7 @@ public class TagController {
             @ApiResponse(responseCode = "404", description = "Tag not found")
     })
     public Mono<TagDTO> updateTag(
-            @Parameter(description = "ID of the tag to update") @PathVariable Long id,
+            @Parameter(description = "ID of the tag to update") @PathVariable UUID id,
             @Parameter(description = "Updated tag data") @RequestBody TagDTO tagDTO) {
         tagDTO.setId(id);
         return tagService.update(tagDTO);
@@ -108,7 +108,7 @@ public class TagController {
             @ApiResponse(responseCode = "404", description = "Tag not found")
     })
     public Mono<Void> deleteTag(
-            @Parameter(description = "ID of the tag to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the tag to delete") @PathVariable UUID id) {
         return tagService.delete(id);
     }
 }

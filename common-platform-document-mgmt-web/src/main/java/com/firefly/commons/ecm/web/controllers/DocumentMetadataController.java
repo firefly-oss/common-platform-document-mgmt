@@ -16,7 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Document Metadata resources.
  */
@@ -36,7 +36,7 @@ public class DocumentMetadataController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<PaginationResponse<DocumentMetadataDTO>> getAllMetadata(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Filter request for document metadata") @ParameterObject @ModelAttribute FilterRequest<DocumentMetadataDTO> filterRequest) {
         return documentMetadataService.filter(filterRequest != null ? filterRequest : new FilterRequest<>());
     }
@@ -49,7 +49,7 @@ public class DocumentMetadataController {
             @ApiResponse(responseCode = "404", description = "Document metadata not found")
     })
     public Mono<DocumentMetadataDTO> getMetadataByKey(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Key of the metadata to retrieve") @PathVariable String key) {
         // This is a simplified implementation. In a real-world scenario, you would need to
         // query the service to find metadata by document ID and key.
@@ -70,7 +70,7 @@ public class DocumentMetadataController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<DocumentMetadataDTO> addMetadata(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Document metadata to add") @RequestBody DocumentMetadataDTO metadataDTO) {
         metadataDTO.setDocumentId(documentId);
         return documentMetadataService.create(metadataDTO);
@@ -85,7 +85,7 @@ public class DocumentMetadataController {
             @ApiResponse(responseCode = "404", description = "Document metadata not found")
     })
     public Mono<DocumentMetadataDTO> updateMetadata(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Key of the metadata to update") @PathVariable String key,
             @Parameter(description = "Updated document metadata") @RequestBody DocumentMetadataDTO metadataDTO) {
         metadataDTO.setDocumentId(documentId);
@@ -101,7 +101,7 @@ public class DocumentMetadataController {
             @ApiResponse(responseCode = "404", description = "Document metadata not found")
     })
     public Mono<Void> deleteMetadata(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Key of the metadata to delete") @PathVariable String key) {
         // This is a simplified implementation. In a real-world scenario, you would need to
         // query the service to find metadata by document ID and key, then delete it.

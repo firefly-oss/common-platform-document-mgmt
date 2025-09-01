@@ -13,11 +13,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Document resources.
  */
@@ -48,7 +54,7 @@ public class DocumentController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<DocumentDTO> getDocumentById(
-            @Parameter(description = "ID of the document to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the document to retrieve") @PathVariable UUID id) {
         return documentService.getById(id);
     }
 
@@ -74,7 +80,7 @@ public class DocumentController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<DocumentDTO> updateDocument(
-            @Parameter(description = "ID of the document to update") @PathVariable Long id,
+            @Parameter(description = "ID of the document to update") @PathVariable UUID id,
             @Parameter(description = "Updated document data") @RequestBody DocumentDTO documentDTO) {
         documentDTO.setId(id);
         return documentService.update(documentDTO);
@@ -88,7 +94,77 @@ public class DocumentController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<Void> deleteDocument(
-            @Parameter(description = "ID of the document to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the document to delete") @PathVariable UUID id) {
         return documentService.delete(id);
+    }
+
+    // ECM Operations
+
+    @PostMapping(value = "/{id}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload document content", description = "Uploads file content for an existing document")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document content uploaded successfully",
+                    content = @Content(schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid file upload")
+    })
+    public Mono<DocumentDTO> uploadContent(
+            @Parameter(description = "ID of the document to upload content for") @PathVariable UUID id,
+            @Parameter(description = "File to upload") @RequestPart("file") FilePart filePart) {
+        return documentService.uploadContent(id, filePart);
+    }
+
+    @GetMapping("/{id}/download")
+    @Operation(summary = "Download document content", description = "Downloads the content of a document")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document content downloaded successfully"),
+            @ApiResponse(responseCode = "404", description = "Document not found"),
+            @ApiResponse(responseCode = "404", description = "Document content not available")
+    })
+    public Mono<ResponseEntity<Flux<DataBuffer>>> downloadContent(
+            @Parameter(description = "ID of the document to download") @PathVariable UUID id) {
+        return documentService.getById(id)
+                .map(document -> {
+                    Flux<DataBuffer> content = documentService.downloadContent(id);
+                    
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.add(HttpHeaders.CONTENT_DISPOSITION, 
+                        "attachment; filename=\"" + document.getFileName() + "\"");
+                    if (document.getMimeType() != null) {
+                        headers.add(HttpHeaders.CONTENT_TYPE, document.getMimeType());
+                    }
+                    
+                    return ResponseEntity.ok()
+                            .headers(headers)
+                            .body(content);
+                })
+                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+    }
+
+    @PostMapping(value = "/{id}/versions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Create new document version", description = "Creates a new version of a document with new content")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document version created successfully",
+                    content = @Content(schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document not found"),
+            @ApiResponse(responseCode = "400", description = "Invalid file upload")
+    })
+    public Mono<DocumentDTO> createVersion(
+            @Parameter(description = "ID of the document to create version for") @PathVariable UUID id,
+            @Parameter(description = "File for new version") @RequestPart("file") FilePart filePart,
+            @Parameter(description = "Version comment") @RequestParam(required = false) String comment) {
+        return documentService.createVersion(id, filePart, comment);
+    }
+
+    @GetMapping("/{id}/metadata")
+    @Operation(summary = "Get document content metadata", description = "Retrieves metadata about document content")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Document metadata retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = DocumentDTO.class))),
+            @ApiResponse(responseCode = "404", description = "Document not found")
+    })
+    public Mono<DocumentDTO> getContentMetadata(
+            @Parameter(description = "ID of the document") @PathVariable UUID id) {
+        return documentService.getContentMetadata(id);
     }
 }

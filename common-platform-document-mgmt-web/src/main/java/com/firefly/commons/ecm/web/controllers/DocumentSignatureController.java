@@ -16,7 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * REST controller for managing Document Signature resources.
  */
@@ -36,7 +36,7 @@ public class DocumentSignatureController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<PaginationResponse<DocumentSignatureDTO>> listDocumentSignatures(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Filter request for document signatures") @ParameterObject @ModelAttribute FilterRequest<DocumentSignatureDTO> filterRequest) {
         return documentSignatureService.filter(filterRequest != null ? filterRequest : new FilterRequest<>());
     }
@@ -49,8 +49,8 @@ public class DocumentSignatureController {
             @ApiResponse(responseCode = "404", description = "Document signature not found")
     })
     public Mono<DocumentSignatureDTO> getDocumentSignature(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
-            @Parameter(description = "ID of the signature to retrieve") @PathVariable Long id) {
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "ID of the signature to retrieve") @PathVariable UUID id) {
         return documentSignatureService.getById(id)
                 .filter(signature -> signature.getDocumentId().equals(documentId));
     }
@@ -65,7 +65,7 @@ public class DocumentSignatureController {
             @ApiResponse(responseCode = "404", description = "Document not found")
     })
     public Mono<DocumentSignatureDTO> addDocumentSignature(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
             @Parameter(description = "Document signature data to create") @RequestBody DocumentSignatureDTO signatureDTO) {
         signatureDTO.setDocumentId(documentId);
         return documentSignatureService.create(signatureDTO);
@@ -80,8 +80,8 @@ public class DocumentSignatureController {
             @ApiResponse(responseCode = "404", description = "Document signature not found")
     })
     public Mono<DocumentSignatureDTO> updateDocumentSignature(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
-            @Parameter(description = "ID of the signature to update") @PathVariable Long id,
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "ID of the signature to update") @PathVariable UUID id,
             @Parameter(description = "Updated document signature data") @RequestBody DocumentSignatureDTO signatureDTO) {
         signatureDTO.setId(id);
         signatureDTO.setDocumentId(documentId);
@@ -96,8 +96,8 @@ public class DocumentSignatureController {
             @ApiResponse(responseCode = "404", description = "Document signature not found")
     })
     public Mono<Void> deleteDocumentSignature(
-            @Parameter(description = "ID of the document") @PathVariable Long documentId,
-            @Parameter(description = "ID of the signature to delete") @PathVariable Long id) {
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "ID of the signature to delete") @PathVariable UUID id) {
         return documentSignatureService.getById(id)
                 .filter(signature -> signature.getDocumentId().equals(documentId))
                 .flatMap(signature -> documentSignatureService.delete(id));
