@@ -12,6 +12,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entity representing a document signature in the Enterprise Content Management system.
@@ -24,19 +25,20 @@ import java.time.LocalDateTime;
 public class DocumentSignature {
 
     @Id
-    private Long id;
+    @Column("id")
+    private UUID id;
 
     @Column("document_id")
-    private Long documentId;
+    private UUID documentId;
 
     @Column("document_version_id")
-    private Long documentVersionId;
+    private UUID documentVersionId;
 
     @Column("signature_provider_id")
-    private Long signatureProviderId;
+    private UUID signatureProviderId;
 
     @Column("signer_party_id")
-    private Long signerPartyId;
+    private UUID signerPartyId;
 
     @Column("signer_name")
     private String signerName;

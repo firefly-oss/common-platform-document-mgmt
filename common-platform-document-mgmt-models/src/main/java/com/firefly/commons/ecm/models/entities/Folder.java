@@ -10,7 +10,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Entity representing a folder in the Enterprise Content Management system.
  */
@@ -22,7 +22,8 @@ import java.time.LocalDateTime;
 public class Folder {
 
     @Id
-    private Long id;
+    @Column("id")
+    private UUID id;
 
     @Column("name")
     private String name;
@@ -31,7 +32,7 @@ public class Folder {
     private String description;
 
     @Column("parent_folder_id")
-    private Long parentFolderId;
+    private UUID parentFolderId;
 
     @Column("path")
     private String path;

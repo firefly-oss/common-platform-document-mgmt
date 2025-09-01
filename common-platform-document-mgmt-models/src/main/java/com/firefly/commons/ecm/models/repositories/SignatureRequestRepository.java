@@ -6,13 +6,14 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 /**
  * Repository for managing SignatureRequest entities in the Enterprise Content Management system.
  */
 @Repository
-public interface SignatureRequestRepository extends BaseRepository<SignatureRequest, Long> {
+public interface SignatureRequestRepository extends BaseRepository<SignatureRequest, UUID> {
     
     /**
      * Find all signature requests for a document signature.
@@ -20,7 +21,7 @@ public interface SignatureRequestRepository extends BaseRepository<SignatureRequ
      * @param documentSignatureId The document signature ID
      * @return A Flux emitting all signature requests for the document signature
      */
-    Flux<SignatureRequest> findByDocumentSignatureId(Long documentSignatureId);
+    Flux<SignatureRequest> findByDocumentSignatureId(UUID documentSignatureId);
     
     /**
      * Find a signature request by its reference.

@@ -4,11 +4,13 @@ import com.firefly.commons.ecm.models.entities.SignatureProvider;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Repository for managing SignatureProvider entities in the Enterprise Content Management system.
  */
 @Repository
-public interface SignatureProviderRepository extends BaseRepository<SignatureProvider, Long> {
+public interface SignatureProviderRepository extends BaseRepository<SignatureProvider, UUID> {
     
     /**
      * Find the default signature provider for a tenant.

@@ -6,11 +6,13 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * Repository for managing DocumentSignature entities in the Enterprise Content Management system.
  */
 @Repository
-public interface DocumentSignatureRepository extends BaseRepository<DocumentSignature, Long> {
+public interface DocumentSignatureRepository extends BaseRepository<DocumentSignature, UUID> {
     
     /**
      * Find all signatures for a document.
@@ -18,7 +20,7 @@ public interface DocumentSignatureRepository extends BaseRepository<DocumentSign
      * @param documentId The document ID
      * @return A Flux emitting all signatures for the document
      */
-    Flux<DocumentSignature> findByDocumentId(Long documentId);
+    Flux<DocumentSignature> findByDocumentId(UUID documentId);
     
     /**
      * Find all signatures for a document version.
@@ -26,7 +28,7 @@ public interface DocumentSignatureRepository extends BaseRepository<DocumentSign
      * @param documentVersionId The document version ID
      * @return A Flux emitting all signatures for the document version
      */
-    Flux<DocumentSignature> findByDocumentVersionId(Long documentVersionId);
+    Flux<DocumentSignature> findByDocumentVersionId(UUID documentVersionId);
     
     /**
      * Find all signatures by a specific signer.
@@ -34,7 +36,7 @@ public interface DocumentSignatureRepository extends BaseRepository<DocumentSign
      * @param signerPartyId The signer party ID
      * @return A Flux emitting all signatures by the signer
      */
-    Flux<DocumentSignature> findBySignerPartyId(Long signerPartyId);
+    Flux<DocumentSignature> findBySignerPartyId(UUID signerPartyId);
     
     /**
      * Find all signatures with a specific status.
@@ -51,7 +53,7 @@ public interface DocumentSignatureRepository extends BaseRepository<DocumentSign
      * @param signatureStatus The signature status
      * @return A Flux emitting all signatures for the document with the specified status
      */
-    Flux<DocumentSignature> findByDocumentIdAndSignatureStatus(Long documentId, SignatureStatus signatureStatus);
+    Flux<DocumentSignature> findByDocumentIdAndSignatureStatus(UUID documentId, SignatureStatus signatureStatus);
     
     /**
      * Count the number of signatures for a document.
@@ -59,5 +61,5 @@ public interface DocumentSignatureRepository extends BaseRepository<DocumentSign
      * @param documentId The document ID
      * @return A Mono emitting the count of signatures for the document
      */
-    Mono<Long> countByDocumentId(Long documentId);
+    Mono<Long> countByDocumentId(UUID documentId);
 }

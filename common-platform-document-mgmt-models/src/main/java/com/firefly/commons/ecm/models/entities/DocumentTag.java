@@ -11,6 +11,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entity representing the many-to-many relationship between documents and tags in the Enterprise Content Management system.
@@ -23,13 +24,14 @@ import java.time.LocalDateTime;
 public class DocumentTag {
 
     @Id
-    private Long id;
+    @Column("id")
+    private UUID id;
 
     @Column("document_id")
-    private Long documentId;
+    private UUID documentId;
 
     @Column("tag_id")
-    private Long tagId;
+    private UUID tagId;
 
     @Column("tenant_id")
     private String tenantId;

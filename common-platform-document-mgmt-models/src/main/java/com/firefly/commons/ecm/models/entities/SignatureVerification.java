@@ -10,7 +10,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Entity representing a verification of a document signature in the Enterprise Content Management system.
  */
@@ -22,10 +22,11 @@ import java.time.LocalDateTime;
 public class SignatureVerification {
 
     @Id
-    private Long id;
+    @Column("id")
+    private UUID id;
 
     @Column("document_signature_id")
-    private Long documentSignatureId;
+    private UUID documentSignatureId;
 
     @Column("verification_status")
     private VerificationStatus verificationStatus;

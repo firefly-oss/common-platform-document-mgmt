@@ -12,6 +12,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * Entity representing a version of a document in the Enterprise Content Management system.
@@ -24,10 +25,11 @@ import java.time.LocalDateTime;
 public class DocumentVersion {
 
     @Id
-    private Long id;
+    @Column("id")
+    private UUID id;
 
     @Column("document_id")
-    private Long documentId;
+    private UUID documentId;
 
     @Column("version_number")
     private Integer versionNumber;

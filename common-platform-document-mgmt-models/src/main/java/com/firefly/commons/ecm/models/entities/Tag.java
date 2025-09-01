@@ -9,7 +9,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Entity representing a tag in the Enterprise Content Management system.
  */
@@ -21,7 +21,8 @@ import java.time.LocalDateTime;
 public class Tag {
 
     @Id
-    private Long id;
+    @Column("id")
+    private UUID id;
 
     @Column("name")
     private String name;

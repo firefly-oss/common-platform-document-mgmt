@@ -6,11 +6,12 @@ import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
 /**
  * Repository for managing SignatureVerification entities in the Enterprise Content Management system.
  */
 @Repository
-public interface SignatureVerificationRepository extends BaseRepository<SignatureVerification, Long> {
+public interface SignatureVerificationRepository extends BaseRepository<SignatureVerification, UUID> {
     
     /**
      * Find all verifications for a document signature.
@@ -18,7 +19,7 @@ public interface SignatureVerificationRepository extends BaseRepository<Signatur
      * @param documentSignatureId The document signature ID
      * @return A Flux emitting all verifications for the document signature
      */
-    Flux<SignatureVerification> findByDocumentSignatureId(Long documentSignatureId);
+    Flux<SignatureVerification> findByDocumentSignatureId(UUID documentSignatureId);
     
     /**
      * Find the latest verification for a document signature.
@@ -26,7 +27,7 @@ public interface SignatureVerificationRepository extends BaseRepository<Signatur
      * @param documentSignatureId The document signature ID
      * @return A Mono emitting the latest verification for the document signature
      */
-    Mono<SignatureVerification> findFirstByDocumentSignatureIdOrderByVerificationTimestampDesc(Long documentSignatureId);
+    Mono<SignatureVerification> findFirstByDocumentSignatureIdOrderByVerificationTimestampDesc(UUID documentSignatureId);
     
     /**
      * Find all verifications with a specific status.
@@ -42,5 +43,5 @@ public interface SignatureVerificationRepository extends BaseRepository<Signatur
      * @param documentSignatureId The document signature ID
      * @return A Mono emitting the count of verifications for the document signature
      */
-    Mono<Long> countByDocumentSignatureId(Long documentSignatureId);
+    Mono<Long> countByDocumentSignatureId(UUID documentSignatureId);
 }
