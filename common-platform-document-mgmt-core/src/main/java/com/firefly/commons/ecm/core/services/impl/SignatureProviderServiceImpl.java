@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Implementation of the SignatureProviderService interface.
  */
@@ -27,7 +27,7 @@ public class SignatureProviderServiceImpl implements SignatureProviderService {
     private SignatureProviderMapper mapper;
 
     @Override
-    public Mono<SignatureProviderDTO> getById(Long id) {
+    public Mono<SignatureProviderDTO> getById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDTO);
     }
@@ -69,7 +69,7 @@ public class SignatureProviderServiceImpl implements SignatureProviderService {
     }
 
     @Override
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature provider not found with ID: " + id)))
                 .flatMap(entity -> repository.delete(entity));
@@ -82,7 +82,7 @@ public class SignatureProviderServiceImpl implements SignatureProviderService {
     }
 
     @Override
-    public Mono<SignatureProviderDTO> setAsDefault(Long id, String tenantId) {
+    public Mono<SignatureProviderDTO> setAsDefault(UUID id, String tenantId) {
         // First, find the provider to set as default
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature provider not found with ID: " + id)))

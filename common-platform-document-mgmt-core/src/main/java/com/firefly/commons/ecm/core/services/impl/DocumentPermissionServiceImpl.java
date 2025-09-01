@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Implementation of the DocumentPermissionService interface.
  */
@@ -27,7 +27,7 @@ public class DocumentPermissionServiceImpl implements DocumentPermissionService 
     private DocumentPermissionMapper mapper;
 
     @Override
-    public Mono<DocumentPermissionDTO> getById(Long id) {
+    public Mono<DocumentPermissionDTO> getById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDTO);
     }
@@ -69,7 +69,7 @@ public class DocumentPermissionServiceImpl implements DocumentPermissionService 
     }
 
     @Override
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Document permission not found with ID: " + id)))
                 .flatMap(entity -> repository.delete(entity));

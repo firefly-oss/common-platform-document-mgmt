@@ -6,7 +6,7 @@ import com.firefly.commons.ecm.interfaces.dtos.SignatureVerificationDTO;
 import com.firefly.commons.ecm.interfaces.enums.VerificationStatus;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Service interface for managing SignatureVerification entities in the Enterprise Content Management system.
  */
@@ -18,7 +18,7 @@ public interface SignatureVerificationService {
      * @param id The signature verification ID
      * @return A Mono emitting the signature verification if found, or empty if not found
      */
-    Mono<SignatureVerificationDTO> getById(Long id);
+    Mono<SignatureVerificationDTO> getById(UUID id);
 
     /**
      * Filter signature verifications based on the provided filter request.
@@ -50,7 +50,7 @@ public interface SignatureVerificationService {
      * @param id The ID of the signature verification to delete
      * @return A Mono completing when the signature verification is deleted
      */
-    Mono<Void> delete(Long id);
+    Mono<Void> delete(UUID id);
 
     /**
      * Get all verifications for a document signature.
@@ -58,7 +58,7 @@ public interface SignatureVerificationService {
      * @param documentSignatureId The document signature ID
      * @return A Flux emitting all verifications for the document signature
      */
-    Flux<SignatureVerificationDTO> getByDocumentSignatureId(Long documentSignatureId);
+    Flux<SignatureVerificationDTO> getByDocumentSignatureId(UUID documentSignatureId);
 
     /**
      * Get the latest verification for a document signature.
@@ -66,7 +66,7 @@ public interface SignatureVerificationService {
      * @param documentSignatureId The document signature ID
      * @return A Mono emitting the latest verification for the document signature
      */
-    Mono<SignatureVerificationDTO> getLatestVerification(Long documentSignatureId);
+    Mono<SignatureVerificationDTO> getLatestVerification(UUID documentSignatureId);
 
     /**
      * Get all verifications with a specific status.
@@ -82,7 +82,7 @@ public interface SignatureVerificationService {
      * @param documentSignatureId The document signature ID
      * @return A Mono emitting the verification result
      */
-    Mono<SignatureVerificationDTO> verifySignature(Long documentSignatureId);
+    Mono<SignatureVerificationDTO> verifySignature(UUID documentSignatureId);
 
     /**
      * Verify all signatures for a document.
@@ -90,5 +90,5 @@ public interface SignatureVerificationService {
      * @param documentId The document ID
      * @return A Flux emitting the verification results for all signatures
      */
-    Flux<SignatureVerificationDTO> verifyAllSignaturesForDocument(Long documentId);
+    Flux<SignatureVerificationDTO> verifyAllSignaturesForDocument(UUID documentId);
 }

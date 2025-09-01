@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Implementation of the FolderService interface.
  */
@@ -27,7 +27,7 @@ public class FolderServiceImpl implements FolderService {
     private FolderMapper mapper;
 
     @Override
-    public Mono<FolderDTO> getById(Long id) {
+    public Mono<FolderDTO> getById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDTO);
     }
@@ -69,7 +69,7 @@ public class FolderServiceImpl implements FolderService {
     }
 
     @Override
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Folder not found with ID: " + id)))
                 .flatMap(entity -> repository.delete(entity));

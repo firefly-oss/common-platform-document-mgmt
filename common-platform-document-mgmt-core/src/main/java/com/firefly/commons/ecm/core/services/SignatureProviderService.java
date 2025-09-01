@@ -4,7 +4,7 @@ import com.firefly.common.core.filters.FilterRequest;
 import com.firefly.common.core.queries.PaginationResponse;
 import com.firefly.commons.ecm.interfaces.dtos.SignatureProviderDTO;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Service interface for managing SignatureProvider entities in the Enterprise Content Management system.
  */
@@ -16,7 +16,7 @@ public interface SignatureProviderService {
      * @param id The signature provider ID
      * @return A Mono emitting the signature provider if found, or empty if not found
      */
-    Mono<SignatureProviderDTO> getById(Long id);
+    Mono<SignatureProviderDTO> getById(UUID id);
 
     /**
      * Filter signature providers based on the provided filter request.
@@ -48,7 +48,7 @@ public interface SignatureProviderService {
      * @param id The ID of the signature provider to delete
      * @return A Mono completing when the signature provider is deleted
      */
-    Mono<Void> delete(Long id);
+    Mono<Void> delete(UUID id);
 
     /**
      * Get the default signature provider for a tenant.
@@ -65,5 +65,5 @@ public interface SignatureProviderService {
      * @param tenantId The tenant ID
      * @return A Mono emitting the updated signature provider
      */
-    Mono<SignatureProviderDTO> setAsDefault(Long id, String tenantId);
+    Mono<SignatureProviderDTO> setAsDefault(UUID id, String tenantId);
 }

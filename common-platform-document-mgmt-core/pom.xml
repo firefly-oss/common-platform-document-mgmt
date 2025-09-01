@@ -34,11 +34,6 @@
             <artifactId>lib-common-core</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.firefly</groupId>
-            <artifactId>lib-plugin-manager-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- Spring WebFlux -->
         <dependency>

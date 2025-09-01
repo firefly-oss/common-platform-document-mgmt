@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 /**
@@ -31,7 +31,7 @@ public class SignatureRequestServiceImpl implements SignatureRequestService {
     private SignatureRequestMapper mapper;
 
     @Override
-    public Mono<SignatureRequestDTO> getById(Long id) {
+    public Mono<SignatureRequestDTO> getById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDTO);
     }
@@ -84,14 +84,14 @@ public class SignatureRequestServiceImpl implements SignatureRequestService {
     }
 
     @Override
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
                 .flatMap(entity -> repository.delete(entity));
     }
 
     @Override
-    public Flux<SignatureRequestDTO> getByDocumentSignatureId(Long documentSignatureId) {
+    public Flux<SignatureRequestDTO> getByDocumentSignatureId(UUID documentSignatureId) {
         return repository.findByDocumentSignatureId(documentSignatureId)
                 .map(mapper::toDTO);
     }
@@ -109,7 +109,7 @@ public class SignatureRequestServiceImpl implements SignatureRequestService {
     }
 
     @Override
-    public Mono<SignatureRequestDTO> sendNotification(Long id) {
+    public Mono<SignatureRequestDTO> sendNotification(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
                 .flatMap(entity -> {
@@ -123,7 +123,7 @@ public class SignatureRequestServiceImpl implements SignatureRequestService {
     }
 
     @Override
-    public Mono<SignatureRequestDTO> sendReminder(Long id) {
+    public Mono<SignatureRequestDTO> sendReminder(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
                 .flatMap(entity -> {

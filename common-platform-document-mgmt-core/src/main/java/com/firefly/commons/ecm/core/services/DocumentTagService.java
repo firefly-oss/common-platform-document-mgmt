@@ -4,7 +4,7 @@ import com.firefly.common.core.filters.FilterRequest;
 import com.firefly.common.core.queries.PaginationResponse;
 import com.firefly.commons.ecm.interfaces.dtos.DocumentTagDTO;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Service interface for managing DocumentTag entities in the Enterprise Content Management system.
  */
@@ -16,7 +16,7 @@ public interface DocumentTagService {
      * @param id The document tag ID
      * @return A Mono emitting the document tag if found, or empty if not found
      */
-    Mono<DocumentTagDTO> getById(Long id);
+    Mono<DocumentTagDTO> getById(UUID id);
 
     /**
      * Filter document tags based on the provided filter request.
@@ -48,5 +48,5 @@ public interface DocumentTagService {
      * @param id The ID of the document tag to delete
      * @return A Mono completing when the document tag is deleted
      */
-    Mono<Void> delete(Long id);
+    Mono<Void> delete(UUID id);
 }

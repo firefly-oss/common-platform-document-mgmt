@@ -3,8 +3,11 @@ package com.firefly.commons.ecm.core.services;
 import com.firefly.common.core.filters.FilterRequest;
 import com.firefly.common.core.queries.PaginationResponse;
 import com.firefly.commons.ecm.interfaces.dtos.DocumentVersionDTO;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.http.codec.multipart.FilePart;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Service interface for managing DocumentVersion entities in the Enterprise Content Management system.
  */
@@ -16,7 +19,7 @@ public interface DocumentVersionService {
      * @param id The document version ID
      * @return A Mono emitting the document version if found, or empty if not found
      */
-    Mono<DocumentVersionDTO> getById(Long id);
+    Mono<DocumentVersionDTO> getById(UUID id);
 
     /**
      * Filter document versions based on the provided filter request.
@@ -48,5 +51,40 @@ public interface DocumentVersionService {
      * @param id The ID of the document version to delete
      * @return A Mono completing when the document version is deleted
      */
-    Mono<Void> delete(Long id);
+    Mono<Void> delete(UUID id);
+
+    // ECM Port Operations for Version Content
+
+    /**
+     * Upload content for a document version using ECM ports.
+     *
+     * @param versionId The ID of the document version to upload content for
+     * @param filePart The file part containing the version content
+     * @return A Mono emitting the updated document version with storage information
+     */
+    Mono<DocumentVersionDTO> uploadVersionContent(UUID versionId, FilePart filePart);
+
+    /**
+     * Download content of a document version using ECM ports.
+     *
+     * @param versionId The ID of the document version to download
+     * @return A Flux of DataBuffer containing the version content
+     */
+    Flux<DataBuffer> downloadVersionContent(UUID versionId);
+
+    /**
+     * Get document version content metadata using ECM ports.
+     *
+     * @param versionId The ID of the document version
+     * @return A Mono emitting document version content metadata
+     */
+    Mono<DocumentVersionDTO> getVersionContentMetadata(UUID versionId);
+
+    /**
+     * Get all versions for a specific document.
+     *
+     * @param documentId The document ID
+     * @return A Flux emitting all versions for the document
+     */
+    Flux<DocumentVersionDTO> getVersionsByDocumentId(UUID documentId);
 }

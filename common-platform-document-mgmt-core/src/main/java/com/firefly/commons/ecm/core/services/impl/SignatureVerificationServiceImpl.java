@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 import java.time.LocalDateTime;
 
 /**
@@ -36,7 +36,7 @@ public class SignatureVerificationServiceImpl implements SignatureVerificationSe
     private DocumentSignatureService documentSignatureService;
 
     @Override
-    public Mono<SignatureVerificationDTO> getById(Long id) {
+    public Mono<SignatureVerificationDTO> getById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDTO);
     }
@@ -86,20 +86,20 @@ public class SignatureVerificationServiceImpl implements SignatureVerificationSe
     }
 
     @Override
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature verification not found with ID: " + id)))
                 .flatMap(entity -> repository.delete(entity));
     }
 
     @Override
-    public Flux<SignatureVerificationDTO> getByDocumentSignatureId(Long documentSignatureId) {
+    public Flux<SignatureVerificationDTO> getByDocumentSignatureId(UUID documentSignatureId) {
         return repository.findByDocumentSignatureId(documentSignatureId)
                 .map(mapper::toDTO);
     }
 
     @Override
-    public Mono<SignatureVerificationDTO> getLatestVerification(Long documentSignatureId) {
+    public Mono<SignatureVerificationDTO> getLatestVerification(UUID documentSignatureId) {
         return repository.findFirstByDocumentSignatureIdOrderByVerificationTimestampDesc(documentSignatureId)
                 .map(mapper::toDTO);
     }
@@ -111,7 +111,7 @@ public class SignatureVerificationServiceImpl implements SignatureVerificationSe
     }
 
     @Override
-    public Mono<SignatureVerificationDTO> verifySignature(Long documentSignatureId) {
+    public Mono<SignatureVerificationDTO> verifySignature(UUID documentSignatureId) {
         // In a real implementation, this would call a signature verification service
         // For now, we'll just create a verification record with a random status
         return documentSignatureService.getById(documentSignatureId)
@@ -138,7 +138,7 @@ public class SignatureVerificationServiceImpl implements SignatureVerificationSe
     }
 
     @Override
-    public Flux<SignatureVerificationDTO> verifyAllSignaturesForDocument(Long documentId) {
+    public Flux<SignatureVerificationDTO> verifyAllSignaturesForDocument(UUID documentId) {
         // Get all signatures for the document and verify each one
         return documentSignatureService.getByDocumentId(documentId)
                 .flatMap(signature -> verifySignature(signature.getId()));

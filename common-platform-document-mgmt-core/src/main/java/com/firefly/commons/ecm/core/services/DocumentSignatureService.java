@@ -6,7 +6,7 @@ import com.firefly.commons.ecm.interfaces.dtos.DocumentSignatureDTO;
 import com.firefly.commons.ecm.interfaces.enums.SignatureStatus;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Service interface for managing DocumentSignature entities in the Enterprise Content Management system.
  */
@@ -18,7 +18,7 @@ public interface DocumentSignatureService {
      * @param id The document signature ID
      * @return A Mono emitting the document signature if found, or empty if not found
      */
-    Mono<DocumentSignatureDTO> getById(Long id);
+    Mono<DocumentSignatureDTO> getById(UUID id);
 
     /**
      * Filter document signatures based on the provided filter request.
@@ -50,7 +50,7 @@ public interface DocumentSignatureService {
      * @param id The ID of the document signature to delete
      * @return A Mono completing when the document signature is deleted
      */
-    Mono<Void> delete(Long id);
+    Mono<Void> delete(UUID id);
 
     /**
      * Get all signatures for a document.
@@ -58,7 +58,7 @@ public interface DocumentSignatureService {
      * @param documentId The document ID
      * @return A Flux emitting all signatures for the document
      */
-    Flux<DocumentSignatureDTO> getByDocumentId(Long documentId);
+    Flux<DocumentSignatureDTO> getByDocumentId(UUID documentId);
 
     /**
      * Get all signatures for a document version.
@@ -66,7 +66,7 @@ public interface DocumentSignatureService {
      * @param documentVersionId The document version ID
      * @return A Flux emitting all signatures for the document version
      */
-    Flux<DocumentSignatureDTO> getByDocumentVersionId(Long documentVersionId);
+    Flux<DocumentSignatureDTO> getByDocumentVersionId(UUID documentVersionId);
 
     /**
      * Get all signatures by a specific signer.
@@ -74,7 +74,7 @@ public interface DocumentSignatureService {
      * @param signerPartyId The signer party ID
      * @return A Flux emitting all signatures by the signer
      */
-    Flux<DocumentSignatureDTO> getBySignerPartyId(Long signerPartyId);
+    Flux<DocumentSignatureDTO> getBySignerPartyId(UUID signerPartyId);
 
     /**
      * Get all signatures with a specific status.
@@ -98,7 +98,7 @@ public interface DocumentSignatureService {
      * @param id The ID of the document signature to cancel
      * @return A Mono emitting the canceled document signature
      */
-    Mono<DocumentSignatureDTO> cancelSignature(Long id);
+    Mono<DocumentSignatureDTO> cancelSignature(UUID id);
 
     /**
      * Check if a document is fully signed.
@@ -106,5 +106,5 @@ public interface DocumentSignatureService {
      * @param documentId The document ID
      * @return A Mono emitting true if the document is fully signed, false otherwise
      */
-    Mono<Boolean> isDocumentFullySigned(Long documentId);
+    Mono<Boolean> isDocumentFullySigned(UUID documentId);
 }

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Implementation of the DocumentTagService interface.
  */
@@ -27,7 +27,7 @@ public class DocumentTagServiceImpl implements DocumentTagService {
     private DocumentTagMapper mapper;
 
     @Override
-    public Mono<DocumentTagDTO> getById(Long id) {
+    public Mono<DocumentTagDTO> getById(UUID id) {
         return repository.findById(id)
                 .map(mapper::toDTO);
     }
@@ -69,7 +69,7 @@ public class DocumentTagServiceImpl implements DocumentTagService {
     }
 
     @Override
-    public Mono<Void> delete(Long id) {
+    public Mono<Void> delete(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Document tag not found with ID: " + id)))
                 .flatMap(entity -> repository.delete(entity));

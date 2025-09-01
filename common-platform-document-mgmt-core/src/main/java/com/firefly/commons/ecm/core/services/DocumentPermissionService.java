@@ -4,7 +4,7 @@ import com.firefly.common.core.filters.FilterRequest;
 import com.firefly.common.core.queries.PaginationResponse;
 import com.firefly.commons.ecm.interfaces.dtos.DocumentPermissionDTO;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Service interface for managing DocumentPermission entities in the Enterprise Content Management system.
  */
@@ -16,7 +16,7 @@ public interface DocumentPermissionService {
      * @param id The document permission ID
      * @return A Mono emitting the document permission if found, or empty if not found
      */
-    Mono<DocumentPermissionDTO> getById(Long id);
+    Mono<DocumentPermissionDTO> getById(UUID id);
 
     /**
      * Filter document permissions based on the provided filter request.
@@ -48,5 +48,5 @@ public interface DocumentPermissionService {
      * @param id The ID of the document permission to delete
      * @return A Mono completing when the document permission is deleted
      */
-    Mono<Void> delete(Long id);
+    Mono<Void> delete(UUID id);
 }

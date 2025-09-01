@@ -4,7 +4,7 @@ import com.firefly.common.core.filters.FilterRequest;
 import com.firefly.common.core.queries.PaginationResponse;
 import com.firefly.commons.ecm.interfaces.dtos.DocumentMetadataDTO;
 import reactor.core.publisher.Mono;
-
+import java.util.UUID;
 /**
  * Service interface for managing DocumentMetadata entities in the Enterprise Content Management system.
  */
@@ -16,7 +16,7 @@ public interface DocumentMetadataService {
      * @param id The document metadata ID
      * @return A Mono emitting the document metadata if found, or empty if not found
      */
-    Mono<DocumentMetadataDTO> getById(Long id);
+    Mono<DocumentMetadataDTO> getById(UUID id);
 
     /**
      * Filter document metadata based on the provided filter request.
@@ -48,5 +48,5 @@ public interface DocumentMetadataService {
      * @param id The ID of the document metadata to delete
      * @return A Mono completing when the document metadata is deleted
      */
-    Mono<Void> delete(Long id);
+    Mono<Void> delete(UUID id);
 }
