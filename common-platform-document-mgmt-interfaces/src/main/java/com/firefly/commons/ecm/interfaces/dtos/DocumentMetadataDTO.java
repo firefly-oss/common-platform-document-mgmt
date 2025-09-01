@@ -1,17 +1,17 @@
 package com.firefly.commons.ecm.interfaces.dtos;
 
-import com.firefly.annotations.ValidDateTime;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.firefly.annotations.ValidDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Data Transfer Object for DocumentMetadata entity.
  */
@@ -25,10 +25,10 @@ public class DocumentMetadataDTO {
 
     @Schema(description = "Unique identifier of the metadata")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long id;
+    private UUID id;
 
     @Schema(description = "ID of the document this metadata belongs to")
-    private Long documentId;
+    private UUID documentId;
 
     @Schema(description = "Metadata key")
     private String key;

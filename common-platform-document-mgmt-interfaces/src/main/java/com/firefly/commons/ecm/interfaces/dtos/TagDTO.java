@@ -1,8 +1,7 @@
 package com.firefly.commons.ecm.interfaces.dtos;
 
-import com.firefly.annotations.ValidDateTime;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.firefly.annotations.ValidDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Data Transfer Object for Tag entity.
  */
@@ -23,7 +22,7 @@ import java.time.LocalDateTime;
 public class TagDTO {
 
     @Schema(description = "Unique identifier of the tag")
-    private Long id;
+    private UUID id;
 
     @Schema(description = "Name of the tag")
     private String name;

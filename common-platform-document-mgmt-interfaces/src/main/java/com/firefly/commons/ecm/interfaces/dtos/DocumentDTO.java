@@ -1,13 +1,12 @@
 package com.firefly.commons.ecm.interfaces.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.firefly.annotations.ValidDateTime;
 import com.firefly.commons.ecm.interfaces.enums.DocumentStatus;
 import com.firefly.commons.ecm.interfaces.enums.DocumentType;
 import com.firefly.commons.ecm.interfaces.enums.SecurityLevel;
 import com.firefly.commons.ecm.interfaces.enums.StorageType;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +14,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Data Transfer Object for Document entity.
  */
@@ -29,7 +28,7 @@ public class DocumentDTO {
 
     @Schema(description = "Unique identifier of the document")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long id;
+    private UUID id;
 
     @Schema(description = "Name of the document")
     private String name;
@@ -65,7 +64,7 @@ public class DocumentDTO {
     private SecurityLevel securityLevel;
 
     @Schema(description = "ID of the folder containing the document")
-    private Long folderId;
+    private UUID folderId;
 
     @Schema(description = "Indicates if the document is encrypted")
     private Boolean isEncrypted;

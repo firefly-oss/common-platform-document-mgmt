@@ -1,17 +1,16 @@
 package com.firefly.commons.ecm.interfaces.dtos;
 
-import com.firefly.annotations.ValidDateTime;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.firefly.annotations.ValidDateTime;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
 import java.time.LocalDateTime;
-
 /**
  * Data Transfer Object for SignatureProvider entity.
  */
@@ -25,7 +24,7 @@ public class SignatureProviderDTO {
 
     @Schema(description = "Unique identifier of the signature provider")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long id;
+    private UUID id;
 
     @Schema(description = "Name of the signature provider")
     private String name;

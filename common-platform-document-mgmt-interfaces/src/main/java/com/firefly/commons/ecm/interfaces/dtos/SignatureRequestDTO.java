@@ -1,10 +1,9 @@
 package com.firefly.commons.ecm.interfaces.dtos;
 
-import com.firefly.annotations.ValidDateTime;
-import com.firefly.commons.ecm.interfaces.enums.SignatureStatus;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.firefly.annotations.ValidDateTime;
+import com.firefly.commons.ecm.interfaces.enums.SignatureStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,7 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Data Transfer Object for SignatureRequest entity.
  */
@@ -26,10 +25,10 @@ public class SignatureRequestDTO {
 
     @Schema(description = "Unique identifier of the signature request")
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Long id;
+    private UUID id;
 
     @Schema(description = "ID of the document signature this request is for")
-    private Long documentSignatureId;
+    private UUID documentSignatureId;
 
     @Schema(description = "Reference code for the signature request")
     private String requestReference;

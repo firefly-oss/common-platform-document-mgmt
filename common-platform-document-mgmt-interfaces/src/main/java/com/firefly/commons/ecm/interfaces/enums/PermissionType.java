@@ -2,6 +2,7 @@ package com.firefly.commons.ecm.interfaces.enums;
 
 /**
  * Enum representing different permission types for documents in the Enterprise Content Management system.
+ * Aligned with lib-ecm PermissionType enum.
  */
 public enum PermissionType {
     /**
@@ -25,32 +26,77 @@ public enum PermissionType {
     SHARE,
     
     /**
-     * Permission to print a document
+     * Permission to execute a document
      */
-    PRINT,
+    EXECUTE,
     
     /**
-     * Permission to download a document
+     * Permission to create new documents
      */
-    DOWNLOAD,
+    CREATE,
     
     /**
-     * Full control over a document (all permissions)
+     * Permission to move a document
      */
-    FULL_CONTROL,
+    MOVE,
     
     /**
-     * Permission to change document permissions
+     * Permission to copy a document
      */
-    CHANGE_PERMISSIONS,
+    COPY,
     
     /**
-     * Permission to view document metadata only
+     * Permission to view document metadata
      */
     VIEW_METADATA,
     
     /**
-     * Permission to edit document metadata
+     * Permission to modify document metadata
      */
-    EDIT_METADATA
+    MODIFY_METADATA,
+    
+    /**
+     * Permission to view document versions
+     */
+    VIEW_VERSIONS,
+    
+    /**
+     * Permission to create new document versions
+     */
+    CREATE_VERSION,
+    
+    /**
+     * Permission to view audit information
+     */
+    VIEW_AUDIT,
+    
+    /**
+     * Permission to manage document permissions
+     */
+    MANAGE_PERMISSIONS,
+    
+    /**
+     * Permission to checkout a document
+     */
+    CHECKOUT,
+    
+    /**
+     * Permission to checkin a document
+     */
+    CHECKIN,
+    
+    /**
+     * Permission to sign a document
+     */
+    SIGN,
+    
+    /**
+     * Permission to send document for signature
+     */
+    SEND_FOR_SIGNATURE,
+    
+    /**
+     * Administrative permissions (full control)
+     */
+    ADMIN
 }

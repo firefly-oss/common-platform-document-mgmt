@@ -1,9 +1,8 @@
 package com.firefly.commons.ecm.interfaces.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.firefly.annotations.ValidDateTime;
 import com.firefly.commons.ecm.interfaces.enums.PermissionType;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-
+import java.util.UUID;
 /**
  * Data Transfer Object for DocumentPermission entity.
  */
@@ -24,13 +23,13 @@ import java.time.LocalDateTime;
 public class DocumentPermissionDTO {
 
     @Schema(description = "Unique identifier of the permission")
-    private Long id;
+    private UUID id;
 
     @Schema(description = "ID of the document this permission applies to")
-    private Long documentId;
+    private UUID documentId;
 
     @Schema(description = "ID of the party this permission applies to")
-    private Long partyId;
+    private UUID partyId;
 
     @Schema(description = "Type of permission")
     private PermissionType permissionType;
