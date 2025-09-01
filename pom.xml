@@ -27,6 +27,15 @@
         </common-platform-document-mgmt.version>
     </properties>
 
+    <dependencies>
+        <!-- LibECM Core -->
+        <dependency>
+            <groupId>com.firefly</groupId>
+            <artifactId>lib-ecm-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <!-- Internal modules -->
