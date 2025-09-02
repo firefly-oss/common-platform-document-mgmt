@@ -1,8 +1,11 @@
 -- Create tables for Enterprise Content Management system
 
+-- Enable UUID extension for UUID generation
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- Folders Table
 CREATE TABLE folders (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     parent_folder_id UUID,
@@ -14,13 +17,13 @@ CREATE TABLE folders (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT fk_folder_parent FOREIGN KEY (parent_folder_id) REFERENCES folders(id) ON DELETE SET NULL
 );
 
 -- Documents Table
 CREATE TABLE documents (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     file_name VARCHAR(255),
@@ -45,14 +48,14 @@ CREATE TABLE documents (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     checksum VARCHAR(255),
     CONSTRAINT fk_document_folder FOREIGN KEY (folder_id) REFERENCES folders(id) ON DELETE SET NULL
 );
 
 -- Document Versions Table
 CREATE TABLE document_versions (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID NOT NULL,
     version_number INTEGER NOT NULL,
     file_name VARCHAR(255),
@@ -73,7 +76,7 @@ CREATE TABLE document_versions (
 
 -- Document Metadata Table
 CREATE TABLE document_metadata (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID NOT NULL,
     metadata_key VARCHAR(255) NOT NULL,
     metadata_value TEXT,
@@ -85,14 +88,14 @@ CREATE TABLE document_metadata (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT fk_document_metadata_document FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
     CONSTRAINT uk_document_metadata_key UNIQUE (document_id, metadata_key)
 );
 
 -- Document Permissions Table
 CREATE TABLE document_permissions (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID NOT NULL,
     party_id UUID NOT NULL,
     permission_type permission_type NOT NULL,
@@ -103,14 +106,14 @@ CREATE TABLE document_permissions (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT fk_document_permission_document FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
     CONSTRAINT uk_document_permission UNIQUE (document_id, party_id, permission_type)
 );
 
 -- Tags Table
 CREATE TABLE tags (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     color VARCHAR(50),
@@ -120,13 +123,13 @@ CREATE TABLE tags (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT uk_tag_name_tenant UNIQUE (name, tenant_id)
 );
 
 -- Document Tags Table
 CREATE TABLE document_tags (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID NOT NULL,
     tag_id UUID NOT NULL,
     tenant_id VARCHAR(100) NOT NULL,
@@ -139,7 +142,7 @@ CREATE TABLE document_tags (
 
 -- Signature Providers Table
 CREATE TABLE signature_providers (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
     provider_code VARCHAR(100) NOT NULL,
@@ -150,14 +153,14 @@ CREATE TABLE signature_providers (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT uk_signature_provider_name_tenant UNIQUE (name, tenant_id),
     CONSTRAINT uk_signature_provider_code_tenant UNIQUE (provider_code, tenant_id)
 );
 
 -- Document Signatures Table
 CREATE TABLE document_signatures (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_id UUID NOT NULL,
     document_version_id UUID,
     signature_provider_id UUID NOT NULL,
@@ -184,7 +187,7 @@ CREATE TABLE document_signatures (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT fk_document_signature_document FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
     CONSTRAINT fk_document_signature_document_version FOREIGN KEY (document_version_id) REFERENCES document_versions(id) ON DELETE CASCADE,
     CONSTRAINT fk_document_signature_provider FOREIGN KEY (signature_provider_id) REFERENCES signature_providers(id) ON DELETE RESTRICT
@@ -192,7 +195,7 @@ CREATE TABLE document_signatures (
 
 -- Signature Requests Table
 CREATE TABLE signature_requests (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_signature_id UUID NOT NULL,
     request_reference VARCHAR(100) NOT NULL,
     request_status signature_status NOT NULL DEFAULT 'PENDING',
@@ -208,14 +211,14 @@ CREATE TABLE signature_requests (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT fk_signature_request_document_signature FOREIGN KEY (document_signature_id) REFERENCES document_signatures(id) ON DELETE CASCADE,
     CONSTRAINT uk_signature_request_reference UNIQUE (request_reference)
 );
 
 -- Signature Verifications Table
 CREATE TABLE signature_verifications (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_signature_id UUID NOT NULL,
     verification_status verification_status NOT NULL DEFAULT 'NOT_VERIFIED',
     verification_details TEXT,
@@ -233,7 +236,7 @@ CREATE TABLE signature_verifications (
     created_by VARCHAR(255),
     updated_at TIMESTAMP WITH TIME ZONE,
     updated_by VARCHAR(255),
-    version UUID DEFAULT 0,
+    version BIGINT DEFAULT 0,
     CONSTRAINT fk_signature_verification_document_signature FOREIGN KEY (document_signature_id) REFERENCES document_signatures(id) ON DELETE CASCADE
 );
 
