@@ -1,4 +1,4 @@
--- Migration script to convert all primary keys and foreign keys from BIGINT to UUID
+-- Migration script to convert all primary keys and foreign keys from UUID to UUID
 -- This script handles the conversion while preserving existing data relationships
 
 -- Enable UUID extension if not already enabled
@@ -158,7 +158,7 @@ DROP INDEX IF EXISTS idx_signature_requests_document_signature_id;
 DROP INDEX IF EXISTS idx_signature_verifications_document_signature_id;
 
 -- Step 6: Drop old primary key constraints and columns
--- Remove the old BIGINT primary keys
+-- Remove the old UUID primary keys
 
 ALTER TABLE folders DROP CONSTRAINT folders_pkey;
 ALTER TABLE documents DROP CONSTRAINT documents_pkey;
