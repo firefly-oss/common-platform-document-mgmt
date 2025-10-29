@@ -16,39 +16,15 @@
 
 package com.firefly.commons.ecm.core.services;
 
+import com.firefly.common.core.filters.FilterRequest;
+import com.firefly.common.core.queries.PaginationResponse;
 import com.firefly.commons.ecm.interfaces.dtos.DocumentDTO;
-import com.firefly.core.ecm.domain.dto.search.DocumentSearchCriteria;
-import reactor.core.publisher.Flux;
-
-import java.time.Instant;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import reactor.core.publisher.Mono;
 
 /**
- * Service interface for document search operations backed by ECM search port.
+ * Simplified document search service using FilterRequest and FilterUtils.
  */
 public interface DocumentSearchService {
 
-    Flux<DocumentDTO> fullTextSearch(String query, Integer limit);
-
-    Flux<DocumentDTO> searchByName(String namePattern, Integer limit);
-
-    Flux<DocumentDTO> searchByMetadata(Map<String, Object> metadata, Integer limit);
-
-    Flux<DocumentDTO> searchByTags(Set<String> tags, Boolean matchAll, Integer limit);
-
-    Flux<DocumentDTO> searchByMimeType(String mimeType, Integer limit);
-
-    Flux<DocumentDTO> searchByExtension(String extension, Integer limit);
-
-    Flux<DocumentDTO> searchBySize(Long minSize, Long maxSize, Integer limit);
-
-    Flux<DocumentDTO> searchByCreationDate(Instant fromDate, Instant toDate, Integer limit);
-
-    Flux<DocumentDTO> searchByModificationDate(Instant fromDate, Instant toDate, Integer limit);
-
-    Flux<DocumentDTO> searchByCreator(UUID createdBy, Integer limit);
-
-    Flux<DocumentDTO> advancedSearch(DocumentSearchCriteria searchCriteria);
+    Mono<PaginationResponse<DocumentDTO>> filter(FilterRequest<DocumentDTO> filterRequest);
 }

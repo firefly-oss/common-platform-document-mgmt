@@ -16,98 +16,30 @@
 
 package com.firefly.commons.ecm.core.services.impl;
 
-import com.firefly.commons.ecm.core.mappers.EcmDomainMapper;
+import com.firefly.common.core.filters.FilterRequest;
+import com.firefly.common.core.filters.FilterUtils;
+import com.firefly.common.core.queries.PaginationResponse;
+import com.firefly.commons.ecm.core.mappers.DocumentMapper;
 import com.firefly.commons.ecm.core.services.DocumentSearchService;
 import com.firefly.commons.ecm.interfaces.dtos.DocumentDTO;
-import com.firefly.core.ecm.domain.dto.search.DocumentSearchCriteria;
-import com.firefly.core.ecm.port.document.DocumentSearchPort;
-import com.firefly.core.ecm.service.EcmPortProvider;
+import com.firefly.commons.ecm.models.entities.Document;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
-
-import java.time.Instant;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DocumentSearchServiceImpl implements DocumentSearchService {
 
-    private final EcmPortProvider ecmPortProvider;
-    private final EcmDomainMapper ecmDomainMapper;
-
-    private DocumentSearchPort getSearchPortOrThrow() {
-        return ecmPortProvider.getDocumentSearchPort()
-                .orElseThrow(() -> new RuntimeException("Document search requires ECM DocumentSearchPort to be configured"));
-    }
+    private final DocumentMapper mapper;
 
     @Override
-    public Flux<DocumentDTO> fullTextSearch(String query, Integer limit) {
-        return getSearchPortOrThrow().fullTextSearch(query, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByName(String namePattern, Integer limit) {
-        return getSearchPortOrThrow().searchByName(namePattern, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByMetadata(Map<String, Object> metadata, Integer limit) {
-        return getSearchPortOrThrow().searchByMetadata(metadata, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByTags(Set<String> tags, Boolean matchAll, Integer limit) {
-        return getSearchPortOrThrow().searchByTags(tags, matchAll, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByMimeType(String mimeType, Integer limit) {
-        return getSearchPortOrThrow().searchByMimeType(mimeType, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByExtension(String extension, Integer limit) {
-        return getSearchPortOrThrow().searchByExtension(extension, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchBySize(Long minSize, Long maxSize, Integer limit) {
-        return getSearchPortOrThrow().searchBySize(minSize, maxSize, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByCreationDate(Instant fromDate, Instant toDate, Integer limit) {
-        return getSearchPortOrThrow().searchByCreationDate(fromDate, toDate, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByModificationDate(Instant fromDate, Instant toDate, Integer limit) {
-        return getSearchPortOrThrow().searchByModificationDate(fromDate, toDate, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> searchByCreator(UUID createdBy, Integer limit) {
-        return getSearchPortOrThrow().searchByCreator(createdBy, limit)
-                .map(ecmDomainMapper::fromEcmDocument);
-    }
-
-    @Override
-    public Flux<DocumentDTO> advancedSearch(DocumentSearchCriteria searchCriteria) {
-        return getSearchPortOrThrow().advancedSearch(searchCriteria)
-                .map(ecmDomainMapper::fromEcmDocument);
+    public Mono<PaginationResponse<DocumentDTO>> filter(FilterRequest<DocumentDTO> filterRequest) {
+        return FilterUtils.createFilter(
+                Document.class,
+                mapper::toDTO
+        ).filter(filterRequest != null ? filterRequest : new FilterRequest<>());
     }
 }

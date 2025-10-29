@@ -371,33 +371,23 @@ docker build -t firefly/document-mgmt:latest .
 
 Quick reference of newly exposed endpoints (all responses are reactive streams or JSON objects):
 
-- GET /api/v1/documents/search?q={query}&limit={n}
-- GET /api/v1/documents/search/name?pattern={wildcard}&limit={n}
-- GET /api/v1/documents/search/tags?tags=tag1,tag2&matchAll=true&limit={n}
-- POST /api/v1/documents/search/advanced  (body: DocumentSearchCriteria JSON)
+- POST /api/v1/documents/search/filter (body: FilterRequest<DocumentDTO>)
 - GET /api/v1/documents/{documentId}/permissions/check?principalId={uuid}&permission={READ|WRITE|...}
 
 Example requests:
 
 ```bash
-# Full‑text search
-curl -s "http://localhost:8080/api/v1/documents/search?q=contract&limit=10"
-
-# Name pattern search
-curl -s "http://localhost:8080/api/v1/documents/search/name?pattern=contract*.pdf&limit=5"
-
-# Tags search (match all)
-curl -s "http://localhost:8080/api/v1/documents/search/tags?tags=legal,contract&matchAll=true"
-
-# Advanced search
-curl -s -X POST "http://localhost:8080/api/v1/documents/search/advanced" \
+# Filter-based search (by name contains and mimeType equals)
+curl -s -X POST "http://localhost:8080/api/v1/documents/search/filter" \
   -H "Content-Type: application/json" \
   -d '{
-        "query":"nda",
-        "mimeType":"application/pdf",
-        "minSize":1024,
-        "tags":["legal"],
-        "limit":20
+        "filters": [
+          {"field": "name", "op": "CONTAINS", "value": "contract"},
+          {"field": "mimeType", "op": "EQ", "value": "application/pdf"}
+        ],
+        "page": 0,
+        "size": 20,
+        "sort": [{"field":"createdAt","direction":"DESC"}]
       }'
 
 # Permission check
