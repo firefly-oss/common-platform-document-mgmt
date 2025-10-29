@@ -163,8 +163,10 @@ public class DocumentServiceImpl implements DocumentService {
                                             return bytes;
                                         })
                                         .flatMap(contentBytes -> {
-                                            // Store content using ECM port (returns Mono<String>)
-                                            return port.storeContent(documentUuid, contentBytes, filePart.filename());
+                                            String mimeType = filePart.headers().getContentType() != null
+                                                    ? filePart.headers().getContentType().toString()
+                                                    : "application/octet-stream";
+                                            return port.storeContent(documentUuid, contentBytes, mimeType);
                                         })
                                         .flatMap(storagePath -> {
                                     log.debug("Content stored successfully at path: {}", storagePath);

@@ -72,6 +72,80 @@ firefly:
   # These properties provide default values for business logic when not specified in API requests
   # Separate from lib-ecm-core provider configuration (firefly.ecm.document-content, firefly.ecm.signature)
   ecm:
+    # Adapter selection (lib-ecm): choose which provider to instantiate at runtime
+    enabled: ${ECM_ENABLED:true}
+    adapter-type: ${ECM_ADAPTER_TYPE:}
+
+    # Feature toggles (control bean instantiation in EcmAutoConfiguration)
+    features:
+      document-management: ${ECM_FEATURE_DOC_MGMT:true}
+      content-storage: ${ECM_FEATURE_CONTENT_STORAGE:true}
+      versioning: ${ECM_FEATURE_VERSIONING:true}
+      esignature: ${ECM_FEATURE_ESIGNATURE:false}
+
+    # Provider-specific configuration
+    adapter:
+      # AWS S3 (lib-ecm-storage-aws)
+      s3:
+        bucket-name: ${S3_BUCKET_NAME:}
+        region: ${AWS_REGION:}
+        access-key: ${AWS_ACCESS_KEY_ID:}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:}
+        endpoint: ${S3_ENDPOINT:}
+        path-prefix: ${S3_PATH_PREFIX:documents/}
+        enable-versioning: ${S3_ENABLE_VERSIONING:true}
+        path-style-access: ${S3_PATH_STYLE_ACCESS:false}
+        connection-timeout: ${S3_CONNECTION_TIMEOUT:PT30S}
+        socket-timeout: ${S3_SOCKET_TIMEOUT:PT30S}
+        max-retries: ${S3_MAX_RETRIES:3}
+        enable-encryption: ${S3_ENABLE_ENCRYPTION:true}
+        kms-key-id: ${S3_KMS_KEY_ID:}
+        storage-class: ${S3_STORAGE_CLASS:STANDARD}
+        enable-multipart: ${S3_ENABLE_MULTIPART:true}
+        multipart-threshold: ${S3_MULTIPART_THRESHOLD:5242880}
+        multipart-part-size: ${S3_MULTIPART_PART_SIZE:5242880}
+
+      # Azure Blob (lib-ecm-storage-azure)
+      azure-blob:
+        account-name: ${AZURE_ACCOUNT_NAME:}
+        container-name: ${AZURE_CONTAINER_NAME:}
+        # one of the following auth options must be provided
+        account-key: ${AZURE_ACCOUNT_KEY:}
+        connection-string: ${AZURE_CONNECTION_STRING:}
+        sas-token: ${AZURE_SAS_TOKEN:}
+        endpoint: ${AZURE_BLOB_ENDPOINT:}
+        path-prefix: ${AZURE_PATH_PREFIX:documents/}
+        enable-versioning: ${AZURE_ENABLE_VERSIONING:true}
+        access-tier: ${AZURE_ACCESS_TIER:Hot}
+        max-retries: ${AZURE_MAX_RETRIES:3}
+        timeout-seconds: ${AZURE_TIMEOUT_SECONDS:30}
+        block-size: ${AZURE_BLOCK_SIZE:4194304}
+        block-upload-threshold: ${AZURE_BLOCK_UPLOAD_THRESHOLD:268435456}
+        enable-encryption: ${AZURE_ENABLE_ENCRYPTION:true}
+        encryption-key-url: ${AZURE_ENCRYPTION_KEY_URL:}
+        enable-soft-delete: ${AZURE_ENABLE_SOFT_DELETE:true}
+        soft-delete-retention-days: ${AZURE_SOFT_DELETE_RETENTION_DAYS:7}
+
+      # DocuSign (lib-ecm-esignature-docusign)
+      docusign:
+        integration-key: ${DOCUSIGN_INTEGRATION_KEY:}
+        user-id: ${DOCUSIGN_USER_ID:}
+        account-id: ${DOCUSIGN_ACCOUNT_ID:}
+        private-key: ${DOCUSIGN_PRIVATE_KEY:}
+        sandbox-mode: ${DOCUSIGN_SANDBOX:false}
+
+      # Adobe Sign (lib-ecm-esignature-adobe-sign)
+      adobe-sign:
+        client-id: ${ADOBE_SIGN_CLIENT_ID:}
+        client-secret: ${ADOBE_SIGN_CLIENT_SECRET:}
+        refresh-token: ${ADOBE_SIGN_REFRESH_TOKEN:}
+        base-url: ${ADOBE_SIGN_BASE_URL:https://api.na1.adobesign.com}
+
+    # Microservice-level defaults used by services/mappers
+    # eSignature provider selection (optional; if enabled below)
+    esignature:
+      provider: ${ECM_ESIGN_PROVIDER:}
+
     integration:
       signature:
         custom-message: "Please review and sign this document"
@@ -93,26 +167,6 @@ firefly:
         log-failures: true
         include-detailed-errors: false
         send-error-notifications: false
-
-    # ECM Provider Configuration (lib-ecm-core)
-    # These settings configure the actual ECM providers (S3, DocuSign, etc.)
-    # Uncomment and configure as needed for your environment
-    #
-    # document-content:
-    #   provider: s3
-    #   s3:
-    #     bucket: firefly-documents
-    #     region: us-east-1
-    #     access-key: ${AWS_ACCESS_KEY}
-    #     secret-key: ${AWS_SECRET_KEY}
-    #
-    # signature:
-    #   provider: docusign
-    #   docusign:
-    #     integration-key: ${DOCUSIGN_INTEGRATION_KEY}
-    #     user-id: ${DOCUSIGN_USER_ID}
-    #     account-id: ${DOCUSIGN_ACCOUNT_ID}
-    #     base-path: https://demo.docusign.net/restapi
 
 
 ---

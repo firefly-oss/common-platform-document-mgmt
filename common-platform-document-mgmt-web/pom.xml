@@ -28,6 +28,28 @@
             <artifactId>common-platform-document-mgmt-interfaces</artifactId>
         </dependency>
 
+        <!-- ECM Providers: include multiple adapters; instantiate via properties -->
+        <dependency>
+            <groupId>com.firefly</groupId>
+            <artifactId>lib-ecm-storage-aws</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.firefly</groupId>
+            <artifactId>lib-ecm-storage-azure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.firefly</groupId>
+            <artifactId>lib-ecm-esignature-docusign</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.firefly</groupId>
+            <artifactId>lib-ecm-esignature-adobe-sign</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Common Libraries -->
         <dependency>
             <groupId>com.firefly</groupId>
