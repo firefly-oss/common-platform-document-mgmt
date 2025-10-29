@@ -26,6 +26,7 @@ import com.firefly.commons.ecm.interfaces.dtos.SignatureRequestDTO;
 import com.firefly.commons.ecm.interfaces.enums.SignatureStatus;
 import com.firefly.commons.ecm.models.entities.SignatureRequest;
 import com.firefly.commons.ecm.models.repositories.SignatureRequestRepository;
+import com.firefly.core.ecm.service.EcmPortProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +47,9 @@ public class SignatureRequestServiceImpl implements SignatureRequestService {
 
     @Autowired
     private SignatureRequestMapper mapper;
+
+    @Autowired
+    private EcmPortProvider ecmPortProvider;
 
     @Override
     public Mono<SignatureRequestDTO> getById(UUID id) {
@@ -129,13 +133,24 @@ public class SignatureRequestServiceImpl implements SignatureRequestService {
     public Mono<SignatureRequestDTO> sendNotification(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
-                .flatMap(entity -> {
-                    // In a real implementation, this would send an actual notification
-                    // For now, we'll just update the entity
-                    entity.setNotificationSent(true);
-                    entity.setNotificationSentAt(LocalDateTime.now());
-                    return repository.save(entity);
-                })
+                .flatMap(entity -> ecmPortProvider.getSignatureRequestPort()
+                        .map(port -> port.resendNotification(id)
+                                .onErrorResume(err -> {
+                                    // If provider call fails, continue with local tracking
+                                    return Mono.empty();
+                                })
+                                .then(Mono.defer(() -> {
+                                    entity.setNotificationSent(true);
+                                    entity.setNotificationSentAt(LocalDateTime.now());
+                                    return repository.save(entity);
+                                })))
+                        .orElseGet(() -> {
+                            // No provider configured, track locally
+                            entity.setNotificationSent(true);
+                            entity.setNotificationSentAt(LocalDateTime.now());
+                            return repository.save(entity);
+                        })
+                )
                 .map(mapper::toDTO);
     }
 
@@ -143,13 +158,20 @@ public class SignatureRequestServiceImpl implements SignatureRequestService {
     public Mono<SignatureRequestDTO> sendReminder(UUID id) {
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Signature request not found with ID: " + id)))
-                .flatMap(entity -> {
-                    // In a real implementation, this would send an actual reminder
-                    // For now, we'll just update the entity
-                    entity.setReminderSent(true);
-                    entity.setReminderSentAt(LocalDateTime.now());
-                    return repository.save(entity);
-                })
+                .flatMap(entity -> ecmPortProvider.getSignatureRequestPort()
+                        .map(port -> port.resendNotification(id)
+                                .onErrorResume(err -> Mono.empty())
+                                .then(Mono.defer(() -> {
+                                    entity.setReminderSent(true);
+                                    entity.setReminderSentAt(LocalDateTime.now());
+                                    return repository.save(entity);
+                                })))
+                        .orElseGet(() -> {
+                            entity.setReminderSent(true);
+                            entity.setReminderSentAt(LocalDateTime.now());
+                            return repository.save(entity);
+                        })
+                )
                 .map(mapper::toDTO);
     }
 

@@ -100,19 +100,32 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
 
     @Override
     public Mono<Void> delete(UUID id) {
+        log.debug("Deleting document version with ID: {}", id);
+        
         return repository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Document version not found with ID: " + id)))
                 .flatMap(entity -> {
+                    log.info("Deleting version: {} (ID: {})", entity.getFileName(), entity.getId());
+                    
                     // Delete version content from ECM storage if available
                     java.util.UUID versionUuid = java.util.UUID.fromString(entity.getId().toString());
                     
-                    // ECM integration temporarily commented out due to missing dependencies
-                    // return ecmPortProvider.getDocumentVersionPort()
-                    //         .map(port -> port.deleteVersion(versionUuid)
-                    //                 .onErrorComplete()) // Continue even if ECM deletion fails
-                    //         .orElse(Mono.empty())
-                    //         .then(repository.delete(entity));
-                    return repository.delete(entity);
+                    return ecmPortProvider.getDocumentVersionPort()
+                            .map(port -> {
+                                log.debug("Using ECM DocumentVersionPort to delete version content");
+                                return port.deleteVersion(versionUuid)
+                                        .doOnSuccess(result -> log.debug("Version content deleted from ECM storage"))
+                                        .doOnError(error -> log.warn("Failed to delete version content from ECM storage: {}", error.getMessage()))
+                                        .onErrorComplete() // Continue even if ECM deletion fails
+                                        .then(repository.delete(entity));
+                            })
+                            .orElse(
+                                    // Fallback: delete from database only
+                                    repository.delete(entity)
+                                            .doOnSuccess(result -> log.debug("Version deleted from database (ECM port not available)"))
+                            )
+                            .doOnSuccess(result -> log.info("Document version deleted successfully: {}", entity.getId()))
+                            .doOnError(error -> log.error("Failed to delete document version {}: {}", entity.getId(), error.getMessage(), error));
                 });
     }
 
@@ -120,66 +133,94 @@ public class DocumentVersionServiceImpl implements DocumentVersionService {
 
     @Override
     public Mono<DocumentVersionDTO> uploadVersionContent(UUID versionId, FilePart filePart) {
+        log.debug("Uploading content for version ID: {} with filename: {}", versionId, filePart.filename());
+        
         return repository.findById(versionId)
                 .switchIfEmpty(Mono.error(new RuntimeException("Document version not found with ID: " + versionId)))
                 .flatMap(version -> {
+                    log.info("Uploading content for version: {} (ID: {}), filename: {}",
+                            version.getVersionNumber(), version.getId(), filePart.filename());
+                    
                     // Upload version content using ECM port if available
                     java.util.UUID versionUuid = java.util.UUID.fromString(version.getId().toString());
                     
-                    // ECM integration temporarily commented out due to missing dependencies
-                    return Mono.just(version)
-                            .flatMap(v -> {
-                                // Fallback implementation without ECM
-                                v.setFileName(filePart.filename());
-                                v.setStoragePath("local/versions/" + v.getId());
-                                v.setMimeType(filePart.headers().getContentType() != null ?
-                                        filePart.headers().getContentType().toString() : null);
-                                return repository.save(v);
+                    return ecmPortProvider.getDocumentContentPort()
+                            .map(port -> {
+                                log.debug("Using ECM DocumentContentPort to store version content");
+                                
+                                // Convert FilePart content to byte array for ECM storage
+                                return filePart.content()
+                                        .collectList()
+                                        .map(dataBuffers -> {
+                                            // Convert DataBuffer list to byte array
+                                            int totalSize = dataBuffers.stream().mapToInt(DataBuffer::readableByteCount).sum();
+                                            byte[] bytes = new byte[totalSize];
+                                            int offset = 0;
+                                            for (DataBuffer buffer : dataBuffers) {
+                                                int length = buffer.readableByteCount();
+                                                buffer.read(bytes, offset, length);
+                                                offset += length;
+                                            }
+                                            return bytes;
+                                        })
+                                        .flatMap(contentBytes -> {
+                                            String mimeType = filePart.headers().getContentType() != null
+                                                    ? filePart.headers().getContentType().toString()
+                                                    : "application/octet-stream";
+                                            return port.storeContent(versionUuid, contentBytes, mimeType);
+                                        })
+                                        .flatMap(storagePath -> {
+                                            log.debug("Version content stored successfully at path: {}", storagePath);
+                                            
+                                            // Update version metadata with ECM storage info
+                                            version.setFileName(filePart.filename());
+                                            version.setStoragePath(storagePath);
+                                            version.setMimeType(filePart.headers().getContentType() != null ?
+                                                    filePart.headers().getContentType().toString() : null);
+                                            
+                                            // Save updated version metadata
+                                            return repository.save(version)
+                                                    .doOnSuccess(savedVersion -> log.info("Version content uploaded successfully for ID: {}", savedVersion.getId()))
+                                                    .doOnError(error -> log.error("Failed to save version metadata after content upload: {}", error.getMessage(), error));
+                                        })
+                                        .doOnError(error -> {
+                                            log.error("Failed to upload version content for version ID {}: {}", versionId, error.getMessage(), error);
+                                        });
+                            })
+                            .orElseThrow(() -> {
+                                log.warn("Version content upload not available - ECM DocumentContentPort not configured");
+                                return new RuntimeException("Version content upload requires ECM DocumentContentPort to be configured");
                             });
-
-                    // return ecmPortProvider.getDocumentContentPort()
-                    //         .map(port -> {
-                    //             // Store version content stream and get storage path
-                    //             return port.storeContentStream(
-                    //                     versionUuid,
-                    //                     filePart.content(),
-                    //                     filePart.filename(),
-                    //                     null // size will be calculated by the port
-                    //             ).flatMap(storagePath -> {
-                    //                 // Update version metadata with ECM storage info
-                    //                 version.setFileName(filePart.filename());
-                    //                 version.setStoragePath(storagePath);
-                    //                 version.setMimeType(filePart.headers().getContentType() != null ?
-                    //                         filePart.headers().getContentType().toString() : null);
-                    //                 return repository.save(version);
-                    //             });
-                    //         })
-                    //         .orElse(
-                    //             // Fallback: just update metadata without ECM storage
-                    //             Mono.fromRunnable(() -> {
-                    //                 version.setFileName(filePart.filename());
-                    //                 version.setStoragePath("local/versions/" + version.getId());
-                    //                 version.setMimeType(filePart.headers().getContentType() != null ?
-                    //                         filePart.headers().getContentType().toString() : null);
-                    //             }).then(repository.save(version))
-                    //         );
                 })
                 .map(mapper::toDTO);
     }
 
     @Override
     public Flux<DataBuffer> downloadVersionContent(UUID versionId) {
+        log.debug("Downloading content for version ID: {}", versionId);
+        
         return repository.findById(versionId)
                 .switchIfEmpty(Mono.error(new RuntimeException("Document version not found with ID: " + versionId)))
                 .flatMapMany(version -> {
+                    log.info("Downloading content for version: {} (ID: {})", version.getVersionNumber(), version.getId());
+                    
                     // Download version content using ECM port if available
                     java.util.UUID versionUuid = java.util.UUID.fromString(version.getId().toString());
                     
-                    // ECM integration temporarily commented out due to missing dependencies
-                    // return ecmPortProvider.getDocumentContentPort()
-                    //         .map(port -> port.getContentStream(versionUuid))
-                    //         .orElse(Flux.error(new RuntimeException("Version content not available - ECM port not configured")));
-                    return Flux.error(new RuntimeException("Version content download not available - ECM integration disabled"));
+                    return ecmPortProvider.getDocumentContentPort()
+                            .map(port -> {
+                                log.debug("Using ECM DocumentContentPort to download version content");
+                                return port.getContentStream(versionUuid)
+                                        .doOnNext(buffer -> log.trace("Downloaded version content buffer of size: {}", buffer.readableByteCount()))
+                                        .doOnComplete(() -> log.debug("Version content download completed for version ID: {}", versionId))
+                                        .doOnError(error -> {
+                                            log.error("Failed to download version content for version ID {}: {}", versionId, error.getMessage(), error);
+                                        });
+                            })
+                            .orElseThrow(() -> {
+                                log.warn("Version content not available - ECM DocumentContentPort not configured");
+                                return new RuntimeException("Version content download requires ECM DocumentContentPort to be configured");
+                            });
                 });
     }
 

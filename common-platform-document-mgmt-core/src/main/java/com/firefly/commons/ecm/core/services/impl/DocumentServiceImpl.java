@@ -22,6 +22,7 @@ import com.firefly.common.core.filters.FilterUtils;
 import com.firefly.common.core.queries.PaginationResponse;
 
 import com.firefly.commons.ecm.core.mappers.DocumentMapper;
+import com.firefly.commons.ecm.core.mappers.EcmDomainMapper;
 import com.firefly.commons.ecm.core.services.DocumentService;
 import com.firefly.commons.ecm.interfaces.dtos.DocumentDTO;
 import com.firefly.commons.ecm.models.entities.Document;
@@ -56,6 +57,9 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Autowired
     private EcmPortProvider ecmPortProvider;
+
+    @Autowired
+    private EcmDomainMapper ecmDomainMapper;
 
     @Override
     public Mono<DocumentDTO> getById(UUID id) {
@@ -123,6 +127,12 @@ public class DocumentServiceImpl implements DocumentService {
                                         .then(repository.delete(entity));
                             })
                             .orElse(repository.delete(entity))
+                            .then(Mono.defer(() ->
+                                    ecmPortProvider.getDocumentSearchPort()
+                                            .map(searchPort -> searchPort.removeFromIndex(java.util.UUID.fromString(entity.getId().toString()))
+                                                    .onErrorResume(err -> Mono.empty()))
+                                            .orElse(Mono.empty())
+                            ))
                             .doOnSuccess(result -> log.info("Document deleted successfully: {}", entity.getId()))
                             .doOnError(error -> log.error("Failed to delete document {}: {}", entity.getId(), error.getMessage(), error));
                 });
@@ -178,6 +188,17 @@ public class DocumentServiceImpl implements DocumentService {
                                             filePart.headers().getContentType().toString() : null);
                                     // Save updated document metadata
                                     return repository.save(document)
+                                            .flatMap(savedDoc -> {
+                                                // Index document in search if available
+                                                return ecmPortProvider.getDocumentSearchPort()
+                                                        .map(searchPort -> searchPort.indexDocument(ecmDomainMapper.toEcmDocument(savedDoc))
+                                                                .onErrorResume(err -> {
+                                                                    log.warn("Indexing failed for document {}: {}", savedDoc.getId(), err.getMessage());
+                                                                    return Mono.empty();
+                                                                })
+                                                                .thenReturn(savedDoc))
+                                                        .orElse(Mono.just(savedDoc));
+                                            })
                                             .doOnSuccess(savedDoc -> log.info("Document content uploaded successfully for ID: {}", savedDoc.getId()))
                                             .doOnError(error -> log.error("Failed to save document metadata after content upload: {}", error.getMessage(), error));
                                 })
@@ -226,14 +247,22 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public Mono<DocumentDTO> createVersion(UUID documentId, FilePart filePart, String versionComment) {
+        log.debug("Creating new version for document ID: {} with comment: {}", documentId, versionComment);
+        
         return repository.findById(documentId)
                 .switchIfEmpty(Mono.error(new RuntimeException("Document not found with ID: " + documentId)))
                 .flatMap(document -> {
+                    log.info("Creating version for document: {} (ID: {}), current version: {}",
+                            document.getName(), document.getId(), document.getVersion());
+                    
                     java.util.UUID documentUuid = java.util.UUID.fromString(document.getId().toString());
+                    Integer nextVersionNumber = (document.getVersion() == null ? 0 : document.getVersion().intValue()) + 1;
                     
                     // Use ECM port for version management if available
                     return ecmPortProvider.getDocumentVersionPort()
                             .map(port -> {
+                                log.debug("Using ECM DocumentVersionPort to create version");
+                                
                                 // Convert FilePart content to byte array and create version through ECM port
                                 return filePart.content()
                                         .collectList()
@@ -250,25 +279,79 @@ public class DocumentServiceImpl implements DocumentService {
                                             return bytes;
                                         })
                                         .flatMap(contentBytes -> {
-                                            // Create DocumentVersion object for ECM
-                                            // Note: This would need to be created based on the actual DocumentVersion class structure
-                                            // For now, we'll skip ECM version creation and just update the document
-                                            document.setVersion(document.getVersion() + 1);
-                                            document.setFileName(filePart.filename());
-                                            document.setMimeType(filePart.headers().getContentType() != null ?
-                                                    filePart.headers().getContentType().toString() : null);
-
-                                            return repository.save(document);
+                                            // Create ECM DocumentVersion domain object
+                                            String mimeType = filePart.headers().getContentType() != null
+                                                    ? filePart.headers().getContentType().toString()
+                                                    : "application/octet-stream";
+                                            
+                                            com.firefly.core.ecm.domain.model.document.DocumentVersion ecmVersion = 
+                                                com.firefly.core.ecm.domain.model.document.DocumentVersion.builder()
+                                                    .id(java.util.UUID.randomUUID())
+                                                    .documentId(documentUuid)
+                                                    .versionNumber(nextVersionNumber)
+                                                    .versionLabel(String.format("v%d", nextVersionNumber))
+                                                    .comment(versionComment != null ? versionComment : "Version created")
+                                                    .size((long) contentBytes.length)
+                                                    .mimeType(mimeType)
+                                                    .createdAt(java.time.Instant.now())
+                                                    .current(true)
+                                                    .majorVersion(false)
+                                                    .status(com.firefly.core.ecm.domain.enums.document.VersionStatus.CURRENT)
+                                                    .versionType(com.firefly.core.ecm.domain.enums.document.VersionType.MANUAL)
+                                                    .changesSummary(versionComment)
+                                                    .build();
+                                            
+                                            // Create version in ECM with content
+                                            return port.createVersion(ecmVersion, contentBytes)
+                                                    .doOnSuccess(createdVersion -> 
+                                                        log.debug("ECM version created with ID: {}, storage path: {}", 
+                                                                createdVersion.getId(), createdVersion.getStoragePath()))
+                                                    .flatMap(createdVersion -> {
+                                                        // Update document with new version information
+                                                        document.setVersion(nextVersionNumber.longValue());
+                                                        document.setFileName(filePart.filename());
+                                                        document.setMimeType(mimeType);
+                                                        document.setStoragePath(createdVersion.getStoragePath());
+                                                        
+                                                        return repository.save(document)
+                                                                .flatMap(savedDoc -> {
+                                                                    // Index updated document in search if available
+                                                                    return ecmPortProvider.getDocumentSearchPort()
+                                                                            .map(searchPort -> searchPort.indexDocument(ecmDomainMapper.toEcmDocument(savedDoc))
+                                                                                    .onErrorResume(err -> {
+                                                                                        log.warn("Indexing failed for document {}: {}", savedDoc.getId(), err.getMessage());
+                                                                                        return Mono.empty();
+                                                                                    })
+                                                                                    .thenReturn(savedDoc))
+                                                                            .orElse(Mono.just(savedDoc));
+                                                                })
+                                                                .doOnSuccess(savedDoc -> 
+                                                                    log.info("Document version {} created successfully for document ID: {}", 
+                                                                            nextVersionNumber, savedDoc.getId()));
+                                                    });
+                                        })
+                                        .doOnError(error -> {
+                                            log.error("Failed to create version for document ID {}: {}", 
+                                                    documentId, error.getMessage(), error);
                                         });
                             })
                             .orElse(
                                 // Fallback: simple version increment without ECM versioning
-                                Mono.fromRunnable(() -> {
-                                    document.setVersion(document.getVersion() + 1);
+                                Mono.defer(() -> {
+                                    log.warn("Creating version without ECM - DocumentVersionPort not available");
+                                    document.setVersion(nextVersionNumber.longValue());
                                     document.setFileName(filePart.filename());
                                     document.setMimeType(filePart.headers().getContentType() != null ? 
                                             filePart.headers().getContentType().toString() : null);
-                                }).then(repository.save(document))
+                                    return repository.save(document)
+                                            .flatMap(savedDoc -> ecmPortProvider.getDocumentSearchPort()
+                                                    .map(searchPort -> searchPort.indexDocument(ecmDomainMapper.toEcmDocument(savedDoc))
+                                                            .onErrorResume(err -> Mono.empty())
+                                                            .thenReturn(savedDoc))
+                                                    .orElse(Mono.just(savedDoc)))
+                                            .doOnSuccess(savedDoc -> 
+                                                log.debug("Document version incremented locally (no ECM) for ID: {}", savedDoc.getId()));
+                                })
                             );
                 })
                 .map(mapper::toDTO);

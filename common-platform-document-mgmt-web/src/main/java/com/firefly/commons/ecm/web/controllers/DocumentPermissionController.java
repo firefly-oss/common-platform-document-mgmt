@@ -119,4 +119,17 @@ public class DocumentPermissionController {
                 .filter(permission -> permission.getDocumentId().equals(documentId))
                 .flatMap(permission -> documentPermissionService.delete(id));
     }
+
+    @GetMapping("/check")
+    @Operation(summary = "Check permission", description = "Checks if a principal has a specific permission on a document (via ECM)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Check completed",
+                    content = @Content(schema = @Schema(implementation = Boolean.class)))
+    })
+    public Mono<Boolean> hasPermission(
+            @Parameter(description = "ID of the document") @PathVariable UUID documentId,
+            @Parameter(description = "Principal ID") @RequestParam("principalId") UUID principalId,
+            @Parameter(description = "Permission type to check") @RequestParam("permission") com.firefly.commons.ecm.interfaces.enums.PermissionType permissionType) {
+        return documentPermissionService.hasPermission(documentId, principalId, permissionType);
+    }
 }

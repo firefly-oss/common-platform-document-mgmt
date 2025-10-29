@@ -279,6 +279,12 @@ class DocumentVersionServiceImplTest {
         when(repository.save(any(DocumentVersion.class))).thenReturn(Mono.just(testDocumentVersion));
         when(mapper.toDTO(testDocumentVersion)).thenReturn(testDocumentVersionDTO);
 
+        // ECM content port present and accepts content
+        com.firefly.core.ecm.port.document.DocumentContentPort contentPort = mock(com.firefly.core.ecm.port.document.DocumentContentPort.class);
+        when(ecmPortProvider.getDocumentContentPort()).thenReturn(java.util.Optional.of(contentPort));
+        when(filePart.content()).thenReturn(Flux.empty());
+        when(contentPort.storeContent(any(UUID.class), any(byte[].class), any(String.class))).thenReturn(Mono.just("/stored/path"));
+
         // When & Then
         StepVerifier.create(documentVersionService.uploadVersionContent(TEST_VERSION_ID, filePart))
                 .expectNext(testDocumentVersionDTO)
@@ -286,7 +292,7 @@ class DocumentVersionServiceImplTest {
 
         verify(repository).findById(TEST_VERSION_ID);
         verify(repository).save(any(DocumentVersion.class));
-        verify(filePart).filename();
+        verify(filePart, atLeastOnce()).filename();
         verify(filePart, atLeastOnce()).headers();
     }
 

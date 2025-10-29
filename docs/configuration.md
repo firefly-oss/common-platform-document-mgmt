@@ -310,6 +310,22 @@ firefly:
 </dependency>
 ```
 
+## Local Development Adapters
+
+For development and CI environments without cloud providers, you can enable functional in-memory adapters that satisfy the ECM ports (no stubs):
+
+```yaml
+firefly:
+  ecm:
+    # Enable in-memory search and permissions adapters (provided by lib-ecm-core)
+    search:
+      enabled: true   # Registers local-search adapter implementing DocumentSearchPort
+    permissions:
+      enabled: true   # Registers local-permissions adapter implementing PermissionPort
+```
+
+These adapters are auto-discovered and selected by the AdapterSelector as fallbacks when a provider-specific adapter is not configured. They ensure the hexagonal ports are wired with working implementations during development.
+
 ## Application Configuration
 
 ### Server Configuration

@@ -66,4 +66,9 @@ public interface DocumentPermissionService {
      * @return A Mono completing when the document permission is deleted
      */
     Mono<Void> delete(UUID id);
+
+    /**
+     * Check if a principal has a permission on a document via ECM PermissionPort.
+     */
+    Mono<Boolean> hasPermission(UUID documentId, UUID principalId, com.firefly.commons.ecm.interfaces.enums.PermissionType permissionType);
 }
